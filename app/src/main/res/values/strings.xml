@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">E Garden</string>
+    <string name="title_activity_menu">MenuActivity</string>
+    <string name="title_home">Home</string>
+    <string name="title_add_plant">Add Plant</string>
+    <string name="title_view_garden">View Garden</string>
+    <string name="title_remove_plant">Remove Plant</string>
+    <string name="sign_in">Sign In</string>
+    <string name="sign_up">Sign Up</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="user_name">User Name</string>
+    <string name="password">Password</string>
+    <string name="re_password">Re-Enter Password</string>
+    <string name="take_pic">Take A Picture of Your Plant</string>
+    <string name="enter_plant_name">Enter The Plant Name</string>
+    <string name="enter_plant_species">Enter The Plant Species</string>
+    <string name="remove_plant_fragment">Remove Plant Fragment</string>
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="add_plant_button">Add Plant Button</string>
+</resources>

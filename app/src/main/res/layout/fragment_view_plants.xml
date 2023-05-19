@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".ViewPlantsFragment"
+    android:background="@color/background"
+    android:orientation="vertical"
+    android:id="@+id/frag_view_plant">
+
+    <view class="androidx.recyclerview.widget.RecyclerView"
+        android:id="@+id/rvViewGarden"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+    </view>
+
+</androidx.appcompat.widget.LinearLayoutCompat>

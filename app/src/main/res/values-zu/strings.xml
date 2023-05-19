@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">I-E-Garden</string>
+    <string name="title_home">Ekhaya</string>
+    <string name="title_add_plant">Engeza Isitshalo Esisha</string>
+    <string name="title_view_garden">Buka Garden</string>
+    <string name="title_remove_plant">Susa Isitshalo</string>
+    <string name="title_activity_menu">Umsebenzi wemenyu</string>
+    <string name="hello_blank_fragment">Sawubona ucezu olungenalutho</string>
+    <string name="sign_in">Ngena</string>
+    <string name="sign_up">Bhalisa</string>
+    <string name="sign_out">Sayina Ngaphandle</string>
+    <string name="user_name">Igama lomsebenzisi</string>
+    <string name="password">Iphasiwedi</string>
+    <string name="re_password">Faka futhi igama lokungena</string>
+    <string name="take_pic">Thatha Isithombe Sezitshalo Zakho</string>
+    <string name="enter_plant_name">Faka igama lesitshalo</string>
+    <string name="enter_plant_species">Ngena ezinhlotsheni zezitshalo</string>
+    <string name="add_plant_button">Engeza Isitshalo</string>
+    <string name="remove_plant_fragment">Susa i-Plant Fragment</string>
+</resources>

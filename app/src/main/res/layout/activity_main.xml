@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.appcompat.widget.LinearLayoutCompat xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/background"
+    tools:context=".MainActivity"
+    android:orientation="vertical"
+    tools:ignore="MissingDefaultResource">
+
+
+    <Button
+        android:id="@+id/btnSignOut"
+        android:layout_width="97dp"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:textFontWeight="400"
+        android:fontFamily="sans-serif-condensed-light"
+        android:backgroundTint="@color/buttonColor"
+        android:background="@drawable/button"
+        android:layout_marginTop="8dp"
+        android:text="@string/sign_out" />
+
+    <ImageView
+        android:id="@+id/imgPlantImage"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_gravity="center"
+        android:onClick="addPicture"
+        tools:src="@drawable/addpic"
+        android:background="@drawable/addpic"
+        tools:visibility="visible" />
+
+
+
+    <TextView
+        android:id="@+id/txtUserName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textFontWeight="500"
+        android:text="Take A Picture of Your Plant"
+        android:fontFamily="sans-serif-condensed-light"
+        android:gravity="center"/>
+
+    <EditText
+        android:id="@+id/etPlantName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed-light"
+        android:ems="10"
+        android:gravity="center_horizontal"
+        android:hint="@string/enter_plant_name"
+        android:inputType="textPersonName" />
+
+    <EditText
+        android:id="@+id/etPlantSpecies"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fontFamily="sans-serif-condensed-light"
+        android:ems="10"
+        android:gravity="center"
+        android:hint="@string/enter_plant_species"
+        android:inputType="textPersonName" />
+
+    <Button
+        android:id="@+id/btnAddPlant"
+        android:layout_width="400dp"
+        android:layout_height="wrap_content"
+        android:text="@string/title_add_plant"
+        android:textFontWeight="400"
+        android:fontFamily="sans-serif-condensed-light"
+        android:gravity="center"
+        android:backgroundTint="@color/buttonColor"
+        android:background="@drawable/button"
+        android:layout_marginStart="6dp" />
+</androidx.appcompat.widget.LinearLayoutCompat>

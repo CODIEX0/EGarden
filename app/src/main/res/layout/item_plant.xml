@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="120dp"
+    app:cardElevation="30dp"
+    app:cardCornerRadius="15dp"
+    android:layout_margin="16dp"
+    >
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:background="@color/cardBackground">
+
+        <ImageView
+            android:id="@+id/imgPlantImage"
+            android:layout_width="97dp"
+            android:layout_height="102dp"
+            android:layout_marginStart="4dp"
+            android:layout_marginTop="4dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvpn"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-condensed-light"
+            android:text="Name: "
+            android:textFontWeight="600"
+            android:textSize="15sp"
+            app:layout_constraintStart_toEndOf="@+id/imgPlantImage"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvPlantName"
+            android:layout_width="195dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginTop="4dp"
+            android:fontFamily="sans-serif-condensed-light"
+            android:textFontWeight="600"
+            android:textSize="15sp"
+            app:layout_constraintStart_toEndOf="@+id/tvpn"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <TextView
+            android:id="@+id/tvps"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="10dp"
+            android:layout_marginTop="15dp"
+            android:fontFamily="sans-serif-condensed-light"
+            android:text="Species: "
+            android:textFontWeight="600"
+            android:textSize="15sp"
+            app:layout_constraintStart_toEndOf="@+id/imgPlantImage"
+            app:layout_constraintTop_toBottomOf="@+id/tvPlantName" />
+
+        <TextView
+            android:id="@+id/tvPlantSpecies"
+            android:layout_width="195dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="15dp"
+            android:fontFamily="sans-serif-condensed-light"
+            android:textFontWeight="600"
+            android:textSize="15sp"
+            app:layout_constraintStart_toEndOf="@+id/tvps"
+            app:layout_constraintTop_toBottomOf="@+id/tvPlantName" />
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+
+</androidx.cardview.widget.CardView>

@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <item
+        android:id="@+id/navigation_home"
+        android:icon="@drawable/ic_home_black_24dp"
+        android:fontFamily="sans-serif-condensed-light"
+        android:title="@string/title_home"/>
+
+    <item
+        android:id="@+id/navigation_add_new_plant"
+        android:icon="@drawable/add_plant"
+        android:fontFamily="sans-serif-condensed-light"
+        android:title="@string/title_add_plant"/>
+
+    <item
+        android:id="@+id/navigation_view_garden"
+        android:icon="@drawable/garden"
+        android:fontFamily="sans-serif-condensed-light"
+        android:title="@string/title_view_garden"/>
+
+    <item
+        android:id="@+id/navigation_remove_plant"
+        android:icon="@drawable/remove_plant"
+        android:fontFamily="sans-serif-condensed-light"
+        android:title="@string/title_remove_plant"/>
+
+</menu>
