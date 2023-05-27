@@ -9,7 +9,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.egarden.Models.Plant
 import com.example.egarden.R
 
-class MyAdapter(private val plantList: ArrayList<Plant>) : RecyclerView.Adapter<MyAdapter.PlantViewHolder>() {
+class MyAdapter(private val plantList: List<Plant>) : RecyclerView.Adapter<MyAdapter.PlantViewHolder>() {
 
     inner class PlantViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -36,11 +36,10 @@ class MyAdapter(private val plantList: ArrayList<Plant>) : RecyclerView.Adapter<
         return plantList.size
     }
 
-
-    fun updatePlantList(plantList: List<Plant>){
-
-        this.plantList.clear()
-        this.plantList.addAll(plantList)
+    fun updatePlantList(plantList: List<Plant>) {
+        var list: MutableList<Plant> = plantList.toMutableList()
+        list.clear()
+        list.addAll(plantList)
         notifyDataSetChanged()
     }
 

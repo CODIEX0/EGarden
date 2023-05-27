@@ -1,9 +1,9 @@
 package com.example.egarden
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
@@ -14,157 +14,126 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
-import androidx.appcompat.app.AppCompatActivity
+import android.widget.Toast
 import androidx.core.content.FileProvider
-import androidx.recyclerview.widget.RecyclerView
-import com.example.egarden.Adapter.MyAdapter
-import com.example.egarden.Models.PlantViewModel
-import com.github.dhaval2404.imagepicker.ImagePicker
+import com.example.egarden.Models.Plant
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.File
-import java.io.FileReader
 import java.io.IOException
 import kotlin.random.Random
-
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-
-
-/**
- * A simple [Fragment] subclass.
- * Use the [NewPlantFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 
 class NewPlantFragment : Fragment() {
 
     private val ARG_PARAM1 = "param1"
     private val ARG_PARAM2 = "param2"
 
-    private lateinit var p_name : EditText
-    private lateinit var p_species : EditText
-    private lateinit var imgPlantImage : ImageView
-    private lateinit var btnAddPlant : Button
-    private lateinit var camera_button: FloatingActionButton
+    private lateinit var p_name: EditText
+    private lateinit var p_species: EditText
+    private lateinit var imgPlantImage: ImageView
+    private lateinit var btnAddPlant: Button
+    private lateinit var cameraButton: FloatingActionButton
+    private val plantDatabase = PlantDatabase()
 
-    private var plantImg : Int = 0
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    private var plantImages: MutableList<Int> = mutableListOf()
 
-    lateinit var photoPath: String
-    val REQUEST_TAKE_PHOTO = 1
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private val REQUEST_TAKE_PHOTO = 1
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // Inflate the layout for this fragment
         val view = inflater.inflate(R.layout.fragment_new_plant, container, false)
-
         initializeViews(view)
 
         btnAddPlant.setOnClickListener {
-            var picture = pictures.toMutableList()
-            var name = plant_names.toMutableList()
-            var species = plant_species.toMutableList()
-            name.add(p_name.text.toString().uppercase())
-            species.add(p_species.text.toString().uppercase())
-            picture.add(plantImg)
-            pictures = picture.toTypedArray()
+            val name = p_name.text.toString().uppercase()
+            val species = p_species.text.toString().uppercase()
+            val plantImage = capturePlantImage()
+
+            val plant = Plant(plantImage, name, species)
+            //adding a plant to the garden
+            plantDatabase.addPlant(plant)
+            Toast.makeText(activity, "Sign up successful!", Toast.LENGTH_SHORT).show()
+            plantImages.add(plantImage)
+
+            // Perform other operations with the captured data (e.g., store in a database)
+
+            // Clear the input fields and image view
+            p_name.setText("")
+            p_species.setText("")
+            imgPlantImage.setImageResource(0)
         }
 
-        camera_button.setOnClickListener {
-            ImagePicker.with(this)
-                .crop()                     //crop image(optional), check customization for more options
-                .compress(1024)             //final image size will be less than 1 MB
-                .maxResultSize(1080,1080)   //final image resolution will be less than 1080 x 1080
-                .start()
-            //takePicture()
+        cameraButton.setOnClickListener {
+            takePicture()
         }
+
         return view
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment NewPlantFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            NewPlantFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
-    }
-
-    /*fun takePicture(){
+    private fun takePicture() {
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-
-        if(takePictureIntent.resolveActivity(Activity().packageManager) != null){
-
-            var photoFile: File? = null
-            try{
-                photoFile = createImageFile()
-            }catch(e :IOException){
-
-            }
-            if(photoFile != null){
-
-                *//*val photoUri = FileProvider.getUriForFile(
-                    this,
+        if (takePictureIntent.resolveActivity(requireActivity().packageManager) != null) {
+            try {
+                val photoFile = createImageFile()
+                val photoUri = FileProvider.getUriForFile(
+                    requireContext(),
                     "com.example.android.fileprovider",
                     photoFile
-                )*//*
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT,photoUri)
-                startActivityForResult(takePictureIntent,REQUEST_TAKE_PHOTO)
+                )
+                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
+                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
+            } catch (e: IOException) {
+                e.printStackTrace()
             }
-
         }
+    }
 
-    }*/
+    // ...
 
-    /*private fun createImageFile() : File?{
-        var r = Random.Default
-        val fileName = "Plant_" + r.nextInt(100)
-        //val storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        *//*val image = File.createTempFile(
+    private fun capturePlantImage(): Int {
+        val bitmap = (imgPlantImage.drawable as? BitmapDrawable)?.bitmap
+        return if (bitmap != null) {
+            // Generate a unique identifier for the image (e.g., using Random or current timestamp)
+            val imageId = Random.nextInt()
+            // Store the image in a file or database using the generated imageId
+            // ...
+
+            // Return the imageId to be added to the list
+            imageId
+        } else {
+            // Return a default placeholder value if no image is captured
+            R.drawable.plant
+        }
+    }
+
+// ...
+
+
+    private fun createImageFile(): File {
+        val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        val fileName = "Plant_${Random.nextInt(100)}"
+        return File.createTempFile(
             fileName,
             ".jpg",
             storageDir
-        )*//*
-
-        photoPath = image.absolutePath
-
-        return image
-    }*/
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-
-        imgPlantImage.setImageURI(data?.data)
-        plantImg = data?.data as Int
+        )
     }
 
-    private fun initializeViews(view : View){
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == Activity.RESULT_OK) {
+            val bitmap = data?.extras?.get("data") as? Bitmap
+            if (bitmap != null) {
+                imgPlantImage.setImageBitmap(bitmap)
+            }
+        }
+    }
+
+    private fun initializeViews(view: View) {
         p_name = view.findViewById(R.id.etPlantName)
-        p_name = view.findViewById(R.id.etPlantSpecies)
-        imgPlantImage = view.findViewById(R.id.imgPlantImage) as ImageView
-        btnAddPlant = view.findViewById(R.id.btnAddPlant) as Button
-        camera_button = view.findViewById(R.id.fabtnCamera) as FloatingActionButton
+        p_species = view.findViewById(R.id.etPlantSpecies)
+        imgPlantImage = view.findViewById(R.id.imgPlantImage)
+        btnAddPlant = view.findViewById(R.id.btnAddPlant)
+        cameraButton = view.findViewById(R.id.fabtnCamera)
     }
 }

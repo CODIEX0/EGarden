@@ -29,9 +29,9 @@ private lateinit var viewModel : PlantViewModel
 private lateinit var plantRecyclerView : RecyclerView
 lateinit var adapter : MyAdapter
 lateinit var pictures : Array<Int>
-lateinit var plant_list : ArrayList<Plant>
 lateinit var plant_names : Array<String>
 lateinit var plant_species : Array<String>
+private val plantDatabase = PlantDatabase()
 
 class ViewPlantsFragment : Fragment() {
     // TODO: Rename and change types of parameters
@@ -82,9 +82,6 @@ class ViewPlantsFragment : Fragment() {
         plantRecyclerView.layoutManager = LinearLayoutManager(context)
         plantRecyclerView.setHasFixedSize(true)
 
-
-        plant_list = ArrayList<Plant>()
-
         pictures = arrayOf(R.drawable.climbing_bamboo,R.drawable.cacti,R.drawable.cannabis,
             R.drawable.banana, R.drawable.bonsai, R.drawable.lemon, R.drawable.mango,
             R.drawable.peach,R.drawable.peanut)
@@ -98,10 +95,10 @@ class ViewPlantsFragment : Fragment() {
         var plant : Plant? = null
         for (i in pictures.indices){
             plant = Plant(pictures[i], plant_names[i].uppercase(), plant_species[i].uppercase())
-            plant_list.add(plant)
+            plantDatabase.addPlant(plant)
         }
 
-        adapter = MyAdapter(plant_list)
+        adapter = MyAdapter(plantDatabase.getAllPlants())
         plantRecyclerView.adapter  = adapter
 
         viewModel = ViewModelProvider(this).get(PlantViewModel::class.java)
