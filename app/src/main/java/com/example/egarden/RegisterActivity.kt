@@ -59,7 +59,7 @@ class RegisterActivity : AppCompatActivity(){
         }
 
         val imgIcon : ImageView = findViewById(R.id.imgIcon)
-        val drawable = ContextCompat.getDrawable(this, R.drawable.egarden_logo)
+        val drawable = ContextCompat.getDrawable(this, R.drawable.logo)
         imgIcon.setImageDrawable(drawable)
     }
 

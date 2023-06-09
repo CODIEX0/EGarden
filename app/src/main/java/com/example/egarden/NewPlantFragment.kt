@@ -19,9 +19,6 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class NewPlantFragment : Fragment() {
 
-    private val ARG_PARAM1 = "param1"
-    private val ARG_PARAM2 = "param2"
-
     private lateinit var p_name: EditText
     private lateinit var p_species: EditText
     private lateinit var imgPlantImage: ImageView
@@ -40,7 +37,6 @@ class NewPlantFragment : Fragment() {
         btnAddPlant.setOnClickListener {
             addPlant()
         }
-
         cameraButton.setOnClickListener {
             captureImage()
         }

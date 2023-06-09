@@ -41,12 +41,12 @@ class LoginActivity : AppCompatActivity() {
                     startActivity(intent)
                 } else {
                     // Display an error message or handle the invalid login case
-                    Toast.makeText(this, "Invalid login credentials", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(this, "Sign In Failed, please try again!", Toast.LENGTH_SHORT).show()
                 }
         }
 
         val imgIcon : ImageView = findViewById(R.id.imgIcon)
-        val drawable = ContextCompat.getDrawable(this, R.drawable.egarden_logo)
+        val drawable = ContextCompat.getDrawable(this, R.drawable.logo)
         imgIcon.setImageDrawable(drawable)
     }
 
