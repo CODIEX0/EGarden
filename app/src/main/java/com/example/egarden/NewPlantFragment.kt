@@ -2,11 +2,7 @@ package com.example.egarden
 
 import android.app.Activity
 import android.content.Intent
-import android.graphics.Bitmap
-import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -15,12 +11,11 @@ import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.core.content.FileProvider
+import com.example.egarden.Models.Global
+import com.example.egarden.Models.Image
 import com.example.egarden.Models.Plant
+import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import java.io.File
-import java.io.IOException
-import kotlin.random.Random
 
 class NewPlantFragment : Fragment() {
 
@@ -32,100 +27,77 @@ class NewPlantFragment : Fragment() {
     private lateinit var imgPlantImage: ImageView
     private lateinit var btnAddPlant: Button
     private lateinit var cameraButton: FloatingActionButton
-    private val plantDatabase = PlantDatabase()
 
-    private var plantImages: MutableList<Int> = mutableListOf()
-
-    private val REQUEST_TAKE_PHOTO = 1
+    private lateinit var rootView: View // Added rootView variable for layout inflation
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        val view = inflater.inflate(R.layout.fragment_new_plant, container, false)
-        initializeViews(view)
+        rootView = inflater.inflate(R.layout.fragment_new_plant, container, false)
+        initializeViews(rootView) // Updated to use rootView instead of view
 
         btnAddPlant.setOnClickListener {
-            val name = p_name.text.toString().uppercase()
-            val species = p_species.text.toString().uppercase()
-            val plantImage = capturePlantImage()
-
-            val plant = Plant(plantImage, name, species)
-            //adding a plant to the garden
-            plantDatabase.addPlant(plant)
-            Toast.makeText(activity, "Sign up successful!", Toast.LENGTH_SHORT).show()
-            plantImages.add(plantImage)
-
-            // Perform other operations with the captured data (e.g., store in a database)
-
-            // Clear the input fields and image view
-            p_name.setText("")
-            p_species.setText("")
-            imgPlantImage.setImageResource(0)
+            addPlant()
         }
 
         cameraButton.setOnClickListener {
-            takePicture()
+            captureImage()
         }
-
-        return view
-    }
-
-    private fun takePicture() {
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (takePictureIntent.resolveActivity(requireActivity().packageManager) != null) {
-            try {
-                val photoFile = createImageFile()
-                val photoUri = FileProvider.getUriForFile(
-                    requireContext(),
-                    "com.example.android.fileprovider",
-                    photoFile
-                )
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri)
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO)
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    // ...
-
-    private fun capturePlantImage(): Int {
-        val bitmap = (imgPlantImage.drawable as? BitmapDrawable)?.bitmap
-        return if (bitmap != null) {
-            // Generate a unique identifier for the image (e.g., using Random or current timestamp)
-            val imageId = Random.nextInt()
-            // Store the image in a file or database using the generated imageId
-            // ...
-
-            // Return the imageId to be added to the list
-            imageId
-        } else {
-            // Return a default placeholder value if no image is captured
-            R.drawable.plant
-        }
-    }
-
-// ...
-
-
-    private fun createImageFile(): File {
-        val storageDir = requireContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        val fileName = "Plant_${Random.nextInt(100)}"
-        return File.createTempFile(
-            fileName,
-            ".jpg",
-            storageDir
-        )
+        return rootView
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        if (requestCode == REQUEST_TAKE_PHOTO && resultCode == Activity.RESULT_OK) {
-            val bitmap = data?.extras?.get("data") as? Bitmap
-            if (bitmap != null) {
-                imgPlantImage.setImageBitmap(bitmap)
+        super.onActivityResult(requestCode, resultCode, data)
+        try{
+            if (resultCode == Activity.RESULT_OK) {
+                //Image Uri will not be null for RESULT_OK
+                val img = data?.data!!
+                imgPlantImage.setImageURI(img)
+            } else if (resultCode == ImagePicker.RESULT_ERROR) {
+                Toast.makeText(requireContext(), ImagePicker.getError(data), Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(requireContext(), "Task Cancelled", Toast.LENGTH_SHORT).show()
             }
+        }catch(ex:Exception){
+            Toast.makeText(activity, ex.message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun addPlant(){
+        val name = p_name.text.toString().uppercase()
+        val species = p_species.text.toString().uppercase()
+        val image = Image.convertImageToBase64(imgPlantImage)
+
+        try{
+            if(!name.equals("") || !species.equals("") || !image.equals("")){
+                val username = Global.currentUser?.name
+                val plant = Plant(username.toString(), name, species, image)
+                //adding a plant to the garden (store the plant to the database)
+                Global.plants.add(plant)
+                Toast.makeText(activity, "Plant Added successfully!", Toast.LENGTH_SHORT).show()
+            }else{
+                Toast.makeText(activity, "All Fields Are Required!", Toast.LENGTH_SHORT).show()
+            }
+        }catch(ex:Exception){
+            Toast.makeText(activity, ex.message, Toast.LENGTH_SHORT).show()
+        }
+
+        // Clear the input fields and image view
+        p_name.setText("")
+        p_species.setText("")
+        imgPlantImage.setImageResource(0)
+    }
+
+    private fun captureImage(){
+        try{
+            ImagePicker.with(this)
+                .crop()                     //crop image(optional), check customization for more options
+                .compress(1024)             //final image size will be less than 1 MB
+                .maxResultSize(1080,1080)   //final image resolution will be less than 1080 x 1080
+                .start()
+        }catch(ex: Exception){
+            Toast.makeText(activity, ex.message, Toast.LENGTH_LONG).show()
         }
     }
 

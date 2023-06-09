@@ -6,6 +6,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.example.egarden.Models.Image
 import com.example.egarden.Models.Plant
 import com.example.egarden.R
 
@@ -27,9 +28,9 @@ class MyAdapter(private val plantList: List<Plant>) : RecyclerView.Adapter<MyAda
 
         val currentItem = plantList[position]
 
-        holder.plant_photo.setImageResource(currentItem.plantPhoto)
-        holder.plant_name.text = currentItem.plantName
-        holder.plant_species.text = currentItem.plantSpecies
+        Image.setBase64Image(currentItem.imageData,holder.plant_photo)
+        holder.plant_name.text = currentItem.name
+        holder.plant_species.text = currentItem.species
     }
 
     override fun getItemCount(): Int {

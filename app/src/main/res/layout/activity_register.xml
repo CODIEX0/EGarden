@@ -17,10 +17,17 @@
         android:gravity="center"
         android:textSize="24sp" />
 
+    <ImageView
+        android:id="@+id/imgIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:srcCompat="@drawable/egarden_logo"
+        android:layout_gravity="center"/>
+
     <TextView
         android:id="@+id/textView2"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
+        android:layout_height="wrap_content"
         android:fontFamily="sans-serif-condensed-light"
         android:gravity="center"
         android:textFontWeight="400"
@@ -55,6 +62,37 @@
             android:background="#00FFFFFF"
             android:hint="@string/user_name"
             android:inputType="textPersonName"
+            android:textColorHint="@color/text_color" />
+
+    </androidx.appcompat.widget.LinearLayoutCompat>
+
+    <androidx.appcompat.widget.LinearLayoutCompat
+        android:layout_width="285dp"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_gravity="center"
+        android:layout_marginTop="10dp"
+        android:background="@drawable/edit_text_vview"
+        >
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@android:drawable/sym_action_email"
+            android:layout_gravity="center"
+            android:gravity="bottom"
+            android:layout_marginStart="10dp"/>
+        <EditText
+            android:id="@+id/etEmail"
+            android:layout_width="245dp"
+            android:layout_height="39dp"
+            android:layout_gravity="center"
+            android:layout_marginStart="5dp"
+            android:gravity="fill_vertical"
+            android:textStyle="bold"
+            android:background="#00FFFFFF"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
             android:textColorHint="@color/text_color" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
@@ -122,7 +160,7 @@
     </androidx.appcompat.widget.LinearLayoutCompat>
 
     <Button
-        android:id="@+id/btnSignup"
+        android:id="@+id/btnSignUp"
         android:layout_marginTop="20dp"
         android:layout_width="200dp"
         android:layout_height="58dp"

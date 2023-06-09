@@ -10,10 +10,10 @@ class PlantDatabase {
     }
 
     fun getPlantByName(name: String): Plant? {
-        return plants.find { it.plantName == name}
+        return plants.find { it.name == name}
     }
 
     fun getAllPlants(): List<Plant> {
-        return plants.sortedBy {it.plantName}.toList()
+        return plants.sortedBy {it.name}.toList()
     }
 }

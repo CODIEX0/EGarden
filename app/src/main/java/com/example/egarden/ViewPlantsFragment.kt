@@ -1,15 +1,19 @@
 package com.example.egarden
 
+import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.egarden.Adapter.MyAdapter
+import com.example.egarden.Models.Global
 import com.example.egarden.Models.Plant
 import com.example.egarden.Models.PlantViewModel
 import java.util.concurrent.CountDownLatch
@@ -26,7 +30,7 @@ private const val ARG_PARAM2 = "param2"
  */
 
 private lateinit var viewModel : PlantViewModel
-private lateinit var plantRecyclerView : RecyclerView
+lateinit var plantRecyclerView : RecyclerView
 lateinit var adapter : MyAdapter
 lateinit var pictures : Array<Int>
 lateinit var plant_names : Array<String>
@@ -82,7 +86,7 @@ class ViewPlantsFragment : Fragment() {
         plantRecyclerView.layoutManager = LinearLayoutManager(context)
         plantRecyclerView.setHasFixedSize(true)
 
-        pictures = arrayOf(R.drawable.climbing_bamboo,R.drawable.cacti,R.drawable.cannabis,
+        /*pictures = arrayOf(R.drawable.climbing_bamboo,R.drawable.cacti,R.drawable.cannabis,
             R.drawable.banana, R.drawable.bonsai, R.drawable.lemon, R.drawable.mango,
             R.drawable.peach,R.drawable.peanut)
 
@@ -94,11 +98,11 @@ class ViewPlantsFragment : Fragment() {
 
         var plant : Plant? = null
         for (i in pictures.indices){
-            plant = Plant(pictures[i], plant_names[i].uppercase(), plant_species[i].uppercase())
+            plant = Plant(pictures[i].toDrawable(), plant_names[i].uppercase(), plant_species[i].uppercase())
             plantDatabase.addPlant(plant)
-        }
+        }*/
 
-        adapter = MyAdapter(plantDatabase.getAllPlants())
+        adapter = MyAdapter(Global.plants)
         plantRecyclerView.adapter  = adapter
 
         viewModel = ViewModelProvider(this).get(PlantViewModel::class.java)

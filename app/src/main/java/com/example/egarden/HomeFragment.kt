@@ -24,7 +24,7 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 
-class HomeFragment : Fragment() {
+class HomeFragment : Fragment(), OnCardClickListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -50,26 +50,31 @@ class HomeFragment : Fragment() {
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?,savedInstanceState: Bundle?): View? {
 
         val boot = inflater.inflate(R.layout.fragment_home, container, false)
-        //crd()
+
+        /*addPlant.setOnClickListener {
+            Toast.makeText(requireContext(), "Add Plant Fragment", Toast.LENGTH_SHORT).show()
+            replaceFragment(AddPlantFragment())
+        }
+        viewGarden.setOnClickListener {
+            Toast.makeText(requireContext(), "View Garden Fragment", Toast.LENGTH_SHORT).show()
+            replaceFragment(ViewPlantsFragment())
+        }
+        removePlant.setOnClickListener {
+            Toast.makeText(requireContext(), "Remove Plant Fragment", Toast.LENGTH_SHORT).show()
+            replaceFragment(RemovePlantFragment())
+        }*/
+
         //Inflate the layout for this fragment
         return boot
     }
 
-    /*fun crd(){
+    fun replaceFragment(fragment : Fragment){
 
-        addPlant.setOnClickListener{
-            Toast.makeText(this.context,"Add Plant Fragment", Toast.LENGTH_SHORT).show()
-            listener?.onCardClick(AddPlantFragment())
-        }
-        viewGarden.setOnClickListener{
-            Toast.makeText(this.context,"View Garden Fragment", Toast.LENGTH_SHORT).show()
-            listener?.onCardClick(ViewPlantsFragment())
-        }
-        removePlant.setOnClickListener{
-            Toast.makeText(this.context,"Remove Plant Fragment", Toast.LENGTH_SHORT).show()
-            listener?.onCardClick(RemovePlantFragment())
-        }
-    }*/
+        val fragmentManager = requireActivity().supportFragmentManager
+        val fragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.replace(R.id.fragment_container,fragment)
+        fragmentTransaction.commit()
+    }
 
     companion object {
         /**
@@ -89,5 +94,9 @@ class HomeFragment : Fragment() {
                     putString(ARG_PARAM2, param2)
                 }
             }
+    }
+
+    override fun onCardClick(fragment: Fragment) {
+        replaceFragment(fragment)
     }
 }

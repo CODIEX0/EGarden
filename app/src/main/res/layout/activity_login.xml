@@ -17,10 +17,17 @@
         android:gravity="center"
         android:textSize="24sp" />
 
+    <ImageView
+        android:id="@+id/imgIcon"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        tools:srcCompat="@drawable/egarden_logo"
+        android:layout_gravity="center"/>
+
     <TextView
         android:id="@+id/textView2"
         android:layout_width="match_parent"
-        android:layout_height="120dp"
+        android:layout_height="wrap_content"
         android:fontFamily="sans-serif-condensed-light"
         android:gravity="center"
         android:textFontWeight="400"
@@ -44,6 +51,7 @@
             android:gravity="bottom"
             android:layout_marginStart="10dp"/>
         <EditText
+            android:id="@+id/etname"
             android:layout_width="245dp"
             android:layout_height="39dp"
             android:layout_gravity="center"
@@ -74,7 +82,7 @@
             android:gravity="bottom"
             android:layout_marginStart="10dp"/>
         <EditText
-            android:id="@+id/etPassword"
+            android:id="@+id/etPassWord"
             android:layout_width="245dp"
             android:layout_height="39dp"
             android:layout_gravity="center"
@@ -100,7 +108,7 @@
         android:text="@string/sign_in" />
 
     <Button
-        android:id="@+id/btnSignup"
+        android:id="@+id/btnSignUp"
         android:layout_width="150dp"
         android:layout_height="58dp"
         android:textFontWeight="400"

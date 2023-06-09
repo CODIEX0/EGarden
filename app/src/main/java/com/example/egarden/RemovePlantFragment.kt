@@ -5,6 +5,9 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.TextView
+import com.example.egarden.Models.Image
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -17,16 +20,12 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 class RemovePlantFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
+    lateinit var txtName : TextView
+    lateinit var txtSpecies : TextView
+    lateinit var imgEntryImage : ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
     }
 
     override fun onCreateView(
@@ -37,23 +36,31 @@ class RemovePlantFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_remove_plant, container, false)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment RemovePlantFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            RemovePlantFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
-                }
-            }
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        // Retrieve the arguments Bundle
+        val arguments = arguments
+
+        // Check if arguments exist
+        if (arguments != null) {
+            // Retrieve the data from the bundle
+            val username = arguments.getString("username")
+            val plant_name = arguments.getString("category")
+            val plant_species = arguments.getString("date")
+            val imageData = arguments.getString("imageData")
+            //Update UI elements---
+
+            //Get UI elements
+            txtName = view.findViewById(R.id.txtPlantName)
+            txtSpecies = view.findViewById(R.id.txtPlantSpecies)
+            imgEntryImage = view.findViewById(R.id.imgPlantImage)
+
+            //Set Values    `   ```````````         ```````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
+            txtName.text = plant_name
+            txtSpecies.text = plant_species
+            Image.setBase64Image(imageData, imgEntryImage)
+
+        }
     }
 }
