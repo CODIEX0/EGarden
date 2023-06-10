@@ -5,7 +5,7 @@
         android:id="@+id/Home"
         android:icon="@drawable/home"
         android:fontFamily="sans-serif-condensed-light"
-        android:title="@string/title_home"/>
+        android:title="Dashboard"/>
 
     <item
         android:id="@+id/AddPlant"
@@ -18,11 +18,5 @@
         android:icon="@drawable/garden"
         android:fontFamily="sans-serif-condensed-light"
         android:title="@string/title_view_garden"/>
-
-    <item
-        android:id="@+id/RemovePlant"
-        android:icon="@drawable/remove_plant"
-        android:fontFamily="sans-serif-condensed-light"
-        android:title="@string/title_remove_plant"/>
 
 </menu>

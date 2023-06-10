@@ -18,6 +18,12 @@
         android:textSize="24sp" />
 
     <ImageView
+        android:id="@+id/img"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_gravity="center"/>
+
+    <ImageView
         android:id="@+id/imgIcon"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -55,7 +61,7 @@
         <EditText
             android:id="@+id/etUserName"
             android:layout_width="245dp"
-            android:layout_height="39dp"
+            android:layout_height="48dp"
             android:layout_gravity="center"
             android:layout_marginStart="5dp"
             android:gravity="fill_vertical"
@@ -63,6 +69,7 @@
             android:background="#00FFFFFF"
             android:hint="@string/user_name"
             android:inputType="textPersonName"
+            android:textColor="@color/text_color"
             android:textColorHint="@color/text_color" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
@@ -86,7 +93,7 @@
         <EditText
             android:id="@+id/etEmail"
             android:layout_width="245dp"
-            android:layout_height="39dp"
+            android:layout_height="48dp"
             android:layout_gravity="center"
             android:layout_marginStart="5dp"
             android:gravity="fill_vertical"
@@ -94,6 +101,7 @@
             android:background="#00FFFFFF"
             android:hint="Email"
             android:inputType="textEmailAddress"
+            android:textColor="@color/text_color"
             android:textColorHint="@color/text_color" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
@@ -117,7 +125,7 @@
         <EditText
             android:id="@+id/etPassword"
             android:layout_width="245dp"
-            android:layout_height="39dp"
+            android:layout_height="48dp"
             android:layout_gravity="center"
             android:layout_marginStart="5dp"
             android:gravity="fill_vertical"
@@ -125,6 +133,7 @@
             android:background="#00FFFFFF"
             android:hint="@string/password"
             android:inputType="textPassword"
+            android:textColor="@color/text_color"
             android:textColorHint="@color/text_color" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
@@ -148,7 +157,7 @@
         <EditText
             android:id="@+id/et_re_enter_Password"
             android:layout_width="245dp"
-            android:layout_height="39dp"
+            android:layout_height="48dp"
             android:layout_gravity="center"
             android:layout_marginStart="5dp"
             android:gravity="fill_vertical"
@@ -156,6 +165,7 @@
             android:background="#00FFFFFF"
             android:hint="@string/re_password"
             android:inputType="textPassword"
+            android:textColor="@color/text_color"
             android:textColorHint="@color/text_color" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
@@ -166,6 +176,7 @@
         android:layout_width="200dp"
         android:layout_height="58dp"
         android:textFontWeight="400"
+        android:textColor="@color/white"
         android:backgroundTint="@color/buttonColor"
         android:layout_gravity="center"
         android:fontFamily="sans-serif-condensed-light"
@@ -176,10 +187,10 @@
         android:layout_width="150dp"
         android:layout_height="58dp"
         android:textFontWeight="400"
+        android:textColor="@color/white"
         android:backgroundTint="@color/buttonColor"
         android:layout_gravity="center"
         android:fontFamily="sans-serif-condensed-light"
         android:text="@string/sign_in" />
-
 
 </androidx.appcompat.widget.LinearLayoutCompat>

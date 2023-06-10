@@ -16,10 +16,10 @@ private const val ARG_PARAM2 = "param2"
 
 /**
  * A simple [Fragment] subclass.
- * Use the [RemovePlantFragment.newInstance] factory method to
+ * Use the [ViewPlantFragment.newInstance] factory method to
  * create an instance of this fragment.
  */
-class RemovePlantFragment : Fragment() {
+class ViewPlantFragment : Fragment() {
     lateinit var txtName : TextView
     lateinit var txtSpecies : TextView
     lateinit var imgEntryImage : ImageView
@@ -33,7 +33,7 @@ class RemovePlantFragment : Fragment() {
         savedInstanceState: Bundle?
     ): View? {
         // Inflate the layout for this fragment
-        return inflater.inflate(R.layout.fragment_remove_plant, container, false)
+        return inflater.inflate(R.layout.fragment_view_plant, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

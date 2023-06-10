@@ -88,6 +88,7 @@
         android:layout_height="wrap_content"
         android:text="@string/title_add_plant"
         android:textFontWeight="400"
+        android:textColor="@color/white"
         android:fontFamily="sans-serif-condensed-light"
         android:layout_gravity="center_horizontal"
         android:gravity="center"

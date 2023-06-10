@@ -32,10 +32,6 @@ private const val ARG_PARAM2 = "param2"
 private lateinit var viewModel : PlantViewModel
 lateinit var plantRecyclerView : RecyclerView
 lateinit var adapter : MyAdapter
-lateinit var pictures : Array<Int>
-lateinit var plant_names : Array<String>
-lateinit var plant_species : Array<String>
-private val plantDatabase = PlantDatabase()
 
 class ViewPlantsFragment : Fragment() {
     // TODO: Rename and change types of parameters
@@ -85,22 +81,6 @@ class ViewPlantsFragment : Fragment() {
         plantRecyclerView = view.findViewById(R.id.rvViewGarden)
         plantRecyclerView.layoutManager = LinearLayoutManager(context)
         plantRecyclerView.setHasFixedSize(true)
-
-        /*pictures = arrayOf(R.drawable.climbing_bamboo,R.drawable.cacti,R.drawable.cannabis,
-            R.drawable.banana, R.drawable.bonsai, R.drawable.lemon, R.drawable.mango,
-            R.drawable.peach,R.drawable.peanut)
-
-        plant_names = arrayOf("Climbing Bamboo","Cacti","Cannabis", "Banana", "Bonsai", "Lemon",
-            "Mango", "Peach", "Peanut")
-
-        plant_species = arrayOf("Ampelocalamus scandens","Cactaceae","Cannabaceae","herbaceous",
-            "Juniperus spp.","Citrus limon","Mangifera indica","Prunus persica","Arachis hypogaea")
-
-        var plant : Plant? = null
-        for (i in pictures.indices){
-            plant = Plant(pictures[i].toDrawable(), plant_names[i].uppercase(), plant_species[i].uppercase())
-            plantDatabase.addPlant(plant)
-        }*/
 
         adapter = MyAdapter(Global.plants)
         plantRecyclerView.adapter  = adapter

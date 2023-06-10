@@ -1,27 +1,17 @@
 package com.example.egarden
 
-import android.content.Context
 import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.util.AttributeSet
-import android.util.Log
-import android.view.View
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.navigation.Navigation
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.egarden.Adapter.MyAdapter
 import com.example.egarden.Models.Global
+import com.example.egarden.Models.Image
+import com.example.egarden.Models.Plant
 import com.example.egarden.Models.User
-import com.google.android.material.textfield.TextInputLayout
-import com.google.firebase.database.DatabaseReference
-import com.google.firebase.database.FirebaseDatabase
 
 class RegisterActivity : AppCompatActivity(){
 
@@ -37,6 +27,7 @@ class RegisterActivity : AppCompatActivity(){
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
 
+        insertSampleData()
         initView()
 
         //Sign in user
@@ -66,6 +57,7 @@ class RegisterActivity : AppCompatActivity(){
     private fun clearTextBox(){
         //clear edit text boxes
         etUserName.setText("")
+        etEmail.setText("")
         etPassword.setText("")
         etRePassword.setText("")
     }
@@ -112,6 +104,30 @@ class RegisterActivity : AppCompatActivity(){
         Global.users.add(newUser)
 
         return true
+    }
+
+    private fun insertSampleData() {
+        val testUser = User("coby", "coby@email.com", "1234")
+        Global.users.add(testUser)
+
+        val pictures = arrayOf(R.drawable.climbing_bamboo,R.drawable.cacti,R.drawable.cannabis,
+            R.drawable.banana, R.drawable.bonsai, R.drawable.lemon, R.drawable.mango,
+            R.drawable.peach,R.drawable.peanut)
+
+        val plant_names = arrayOf("Climbing Bamboo","Cacti","Cannabis", "Banana", "Bonsai", "Lemon",
+            "Mango", "Peach", "Peanut")
+
+        val plant_species = arrayOf("Ampelocalamus scandens","Cactaceae","Cannabaceae","herbaceous",
+            "Juniperus spp.","Citrus limon","Mangifera indica","Prunus persica","Arachis hypogaea")
+
+        var Plant : Plant?
+        for (i in pictures.indices){
+            val img : ImageView = findViewById(R.id.img)
+            val drawable = resources.getDrawable(pictures[i])
+            img.setImageDrawable(drawable)
+            Plant = Plant("coby", plant_names[i].uppercase(), plant_species[i].uppercase(), Image.convertImageToBase64(img))
+            Global.plants.add(Plant)
+        }
     }
 
     private fun initView() {

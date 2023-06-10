@@ -31,7 +31,6 @@ class HomeFragment : Fragment(), OnCardClickListener {
 
     lateinit var addPlant : CardView
     lateinit var viewGarden : CardView
-    lateinit var removePlant : CardView
     var listener: OnCardClickListener? = null
 
     override fun onAttach(context: Context) {
@@ -51,18 +50,17 @@ class HomeFragment : Fragment(), OnCardClickListener {
 
         val boot = inflater.inflate(R.layout.fragment_home, container, false)
 
-        /*addPlant.setOnClickListener {
+        /*addPlant = boot.findViewById(R.id.cvAddPlant)
+        addPlant.setOnClickListener {
             Toast.makeText(requireContext(), "Add Plant Fragment", Toast.LENGTH_SHORT).show()
             replaceFragment(AddPlantFragment())
-        }
+        }*/
+
+        viewGarden = boot.findViewById(R.id.cvViewGarden)
         viewGarden.setOnClickListener {
-            Toast.makeText(requireContext(), "View Garden Fragment", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Navigating to Your Garden...", Toast.LENGTH_SHORT).show()
             replaceFragment(ViewPlantsFragment())
         }
-        removePlant.setOnClickListener {
-            Toast.makeText(requireContext(), "Remove Plant Fragment", Toast.LENGTH_SHORT).show()
-            replaceFragment(RemovePlantFragment())
-        }*/
 
         //Inflate the layout for this fragment
         return boot

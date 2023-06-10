@@ -54,14 +54,16 @@
         <EditText
             android:id="@+id/etname"
             android:layout_width="245dp"
-            android:layout_height="39dp"
+            android:layout_height="48dp"
             android:layout_gravity="center"
             android:layout_marginStart="5dp"
             android:gravity="fill_vertical"
             android:textStyle="bold"
             android:background="#00FFFFFF"
             android:hint="@string/user_name"
+            android:text="coby"
             android:inputType="textPersonName"
+            android:textColor="@color/text_color"
             android:textColorHint="@color/text_color" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
@@ -85,14 +87,16 @@
         <EditText
             android:id="@+id/etPassWord"
             android:layout_width="245dp"
-            android:layout_height="39dp"
+            android:layout_height="48dp"
             android:layout_gravity="center"
             android:layout_marginStart="5dp"
             android:gravity="fill_vertical"
             android:textStyle="bold"
             android:background="#00FFFFFF"
             android:hint="@string/password"
+            android:text="1234"
             android:inputType="textPassword"
+            android:textColor="@color/text_color"
             android:textColorHint="@color/text_color" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
@@ -103,6 +107,7 @@
         android:layout_width="200dp"
         android:layout_height="58dp"
         android:textFontWeight="400"
+        android:textColor="@color/white"
         android:backgroundTint="@color/buttonColor"
         android:layout_gravity="center"
         android:fontFamily="sans-serif-condensed-light"
@@ -113,6 +118,7 @@
         android:layout_width="150dp"
         android:layout_height="58dp"
         android:textFontWeight="400"
+        android:textColor="@color/white"
         android:backgroundTint="@color/buttonColor"
         android:layout_gravity="center"
         android:fontFamily="sans-serif-condensed-light"

@@ -3,7 +3,6 @@ package com.example.egarden
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.MenuItem
 import android.widget.Button
 import android.widget.Toast
 import androidx.annotation.NonNull
@@ -32,7 +31,7 @@ class MenuActivity : AppCompatActivity(), OnCardClickListener{
         bottomNav.setOnNavigationItemSelectedListener(navListener)
         // as soon as the application opens the first fragment should
         // be shown to the user in this case it is the home fragment
-        val fragment = HomeFragment()
+        val fragment = NewPlantFragment()
         replaceFragment(fragment)
     }
 
@@ -42,17 +41,17 @@ class MenuActivity : AppCompatActivity(), OnCardClickListener{
         lateinit var selectedFragment: Fragment
 
         when (menuItem.itemId) {
-            R.id.Home -> {
-                selectedFragment = HomeFragment()
-            }
-            R.id.AddPlant -> {
+            R.id.navigation_add_new_plant -> {
+                Toast.makeText(this, "Add a Unique Plant to Your Garden.", Toast.LENGTH_SHORT).show()
                 selectedFragment = NewPlantFragment()
             }
-            R.id.ViewPlants -> {
-                selectedFragment = ViewPlantsFragment()
+            R.id.navigation_home -> {
+                Toast.makeText(this, "Navigating to Your Dashboard...", Toast.LENGTH_SHORT).show()
+                selectedFragment = HomeFragment()
             }
-            R.id.RemovePlant -> {
-                selectedFragment = RemovePlantFragment()
+            R.id.navigation_view_garden -> {
+                Toast.makeText(this, "Navigating to Your Garden...", Toast.LENGTH_SHORT).show()
+                selectedFragment = ViewPlantsFragment()
             }
         }
         // replace the current fragment

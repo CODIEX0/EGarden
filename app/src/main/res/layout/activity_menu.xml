@@ -34,6 +34,7 @@
             android:fontFamily="sans-serif-condensed-light"
             android:gravity="center"
             android:text="@string/sign_out"
+            android:textColor="@color/white"
             android:textFontWeight="400" />
 
     </androidx.appcompat.widget.LinearLayoutCompat>
@@ -52,6 +53,6 @@
         android:background="@drawable/nav_shape"
         app:itemIconTint="@drawable/nav_selector"
         app:itemTextColor="@color/navigationBarTextColor"
-        app:menu="@menu/menu_bar" />
+        app:menu="@menu/bottom_nav_menu" />
 
 </RelativeLayout>

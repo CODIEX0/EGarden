@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".RemovePlantFragment"
+    tools:context=".ViewPlantFragment"
     android:orientation="vertical"
     android:background="@color/background"
     android:weightSum="2">
@@ -21,7 +21,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="20sp"
             android:layout_marginBottom="12sp"
-            android:text="Plant"
+            android:text="Plant Details"
             android:fontFamily="sans-serif-condensed-light"
             android:textColor="@color/buttonColor"
             android:textSize="70dp"
