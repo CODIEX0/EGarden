@@ -14,24 +14,43 @@ class MyAdapter(private val plantList: List<Plant>) : RecyclerView.Adapter<MyAda
 
     inner class PlantViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        val plant_photo: ImageView = itemView.findViewById(R.id.imgPlantImage)
         val plant_name: TextView = itemView.findViewById(R.id.tvPlantName)
         val plant_species: TextView = itemView.findViewById(R.id.tvPlantSpecies)
+        val plant_image: ImageView = itemView.findViewById(R.id.imgPlantImage)
+
+        fun bind(plant: Plant) {
+            plant_name.text = plant.name
+            plant_species.text = plant.species
+            if (plant.imageData.equals("")) {
+                plant_image.visibility = View.INVISIBLE
+            } else {
+                plant_image.visibility = View.VISIBLE
+                Image.setBase64Image(plant.imageData,plant_image)
+            }
+        }
+
+        init {
+            // Set click listener for the itemView
+            itemView.setOnClickListener {
+                val position = adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val plant = plantList[position]
+                    // Call the onItemClick method of the listener with the clicked entry
+                    onItemClickListener?.onItemClick(plant)
+                }
+            }
+        }
     }
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlantViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.item_plant, parent, false)
-
         return PlantViewHolder(view)
     }
 
     override fun onBindViewHolder(holder: PlantViewHolder, position: Int) {
-
-        val currentItem = plantList[position]
-
-        Image.setBase64Image(currentItem.imageData,holder.plant_photo)
-        holder.plant_name.text = currentItem.name
-        holder.plant_species.text = currentItem.species
+        val plant = plantList[position]
+        holder.bind(plant)
     }
+
 
     override fun getItemCount(): Int {
         return plantList.size
@@ -44,5 +63,14 @@ class MyAdapter(private val plantList: List<Plant>) : RecyclerView.Adapter<MyAda
         notifyDataSetChanged()
     }
 
+    interface OnItemClickListener {
+        fun onItemClick(plant: Plant)
+    }
+    private var onItemClickListener: OnItemClickListener? = null
 
+    // Setter for the click listener
+    fun setOnItemClickListener(listener: OnItemClickListener) {
+        this.onItemClickListener = listener
+    }
 }
+

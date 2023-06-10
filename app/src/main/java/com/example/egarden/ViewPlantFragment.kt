@@ -7,6 +7,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.example.egarden.Adapter.MyAdapter
+import com.example.egarden.Models.Global
 import com.example.egarden.Models.Image
 
 // TODO: Rename parameter arguments, choose names that match
@@ -22,7 +26,7 @@ private const val ARG_PARAM2 = "param2"
 class ViewPlantFragment : Fragment() {
     lateinit var txtName : TextView
     lateinit var txtSpecies : TextView
-    lateinit var imgEntryImage : ImageView
+    lateinit var imgPlant : ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,13 +58,12 @@ class ViewPlantFragment : Fragment() {
             //Get UI elements
             txtName = view.findViewById(R.id.txtPlantName)
             txtSpecies = view.findViewById(R.id.txtPlantSpecies)
-            imgEntryImage = view.findViewById(R.id.imgPlantImage)
+            imgPlant = view.findViewById(R.id.imgPlant)
 
             //Set Values    `   ```````````         ```````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````
             txtName.text = plant_name
             txtSpecies.text = plant_species
-            Image.setBase64Image(imageData, imgEntryImage)
-
+            Image.setBase64Image(imageData, imgPlant)
         }
     }
 }

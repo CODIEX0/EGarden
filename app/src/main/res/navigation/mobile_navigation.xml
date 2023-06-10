@@ -19,7 +19,11 @@
         android:id="@+id/navigation_view_garden"
         android:name="com.example.egarden.ViewPlantsFragment"
         android:label="@string/title_view_garden"
-        tools:layout="@layout/fragment_view_plants"/>
+        tools:layout="@layout/fragment_view_plants">
+        <action
+            android:id="@+id/action_ViewPlantsFragment_to_ViewPlantFragment"
+            app:destination="@id/navigation_view_plant" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_view_plant"

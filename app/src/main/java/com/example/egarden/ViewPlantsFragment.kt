@@ -1,22 +1,19 @@
 package com.example.egarden
 
-import android.graphics.drawable.Drawable
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
-import androidx.core.graphics.drawable.toDrawable
 import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.egarden.Adapter.MyAdapter
 import com.example.egarden.Models.Global
 import com.example.egarden.Models.Plant
 import com.example.egarden.Models.PlantViewModel
-import java.util.concurrent.CountDownLatch
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -33,7 +30,7 @@ private lateinit var viewModel : PlantViewModel
 lateinit var plantRecyclerView : RecyclerView
 lateinit var adapter : MyAdapter
 
-class ViewPlantsFragment : Fragment() {
+class ViewPlantsFragment : Fragment(), MyAdapter.OnItemClickListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -92,5 +89,21 @@ class ViewPlantsFragment : Fragment() {
             adapter.updatePlantList(it)
         }
         )
+    }
+
+    override fun onItemClick(plant: Plant) {
+        // Handle the click event and navigate to a different fragment
+        //Add data to bundle
+        val bundle = Bundle()
+        bundle.putString("username", plant.username)
+        bundle.putString("name", plant.name)
+        bundle.putString("species", plant.species)
+        bundle.putString("imageData", plant.imageData)
+
+        val fragment = ViewPlantFragment()
+        fragment.arguments = bundle
+
+        //Navigate to fragment, passing bundle
+        findNavController().navigate(R.id.action_ViewPlantsFragment_to_ViewPlantFragment, bundle)
     }
 }
