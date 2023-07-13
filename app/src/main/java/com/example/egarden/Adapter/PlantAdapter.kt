@@ -1,28 +1,64 @@
 package com.example.egarden.Adapter
 
-import android.app.Activity
+import android.graphics.Color
+import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.RecyclerView
+import com.example.egarden.Models.Image
+import com.example.egarden.data.Plant
 import com.example.egarden.R
 
-class PlantAdapter(private val context: Activity, private val plant_name: Array<String>, private val plant_species: Array<String>, private val imgid: Array<Int>)
-    : ArrayAdapter<String>(context, R.layout.item_plant, plant_name) {
+class PlantAdapter(
+    private val plants: List<Plant>,
+    private val onItemClickListener: OnItemClickListener
+) :
+    RecyclerView.Adapter<PlantAdapter.PlantViewHolder>() {
 
-    override fun getView(position: Int, view: View?, parent: ViewGroup): View {
-        val inflater = context.layoutInflater
-        val rowView = inflater.inflate(R.layout.item_plant, null, true)
+    inner class PlantViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
-        val titleText = rowView.findViewById(R.id.tvPlantName) as TextView
-        val imageView = rowView.findViewById(R.id.imgPlantImage) as ImageView
-        val subtitleText = rowView.findViewById(R.id.tvPlantSpecies) as TextView
+        val plant_name: TextView = itemView.findViewById(R.id.tvPlantName)
+        val plant_species: TextView = itemView.findViewById(R.id.tvPlantSpecies)
+        val plant_image: ImageView = itemView.findViewById(R.id.imgPlantImage)
 
-        titleText.text = plant_name[position]
-        imageView.setImageResource(imgid[position])
-        subtitleText.text = plant_species[position]
+        init {
+            // Set click listener for the itemView
+            itemView.setOnClickListener {
+                val position = layoutPosition // adapterPosition
+                if (position != RecyclerView.NO_POSITION) {
+                    val plant = plants[position]
+                    // Call the onItemClick method of the listener with the clicked plant
+                    onItemClickListener?.onItemClick(plant)
+                }
+            }
+        }
+    }
 
-        return rowView
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PlantViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.item_plant, parent, false)
+        return PlantViewHolder(view)
+    }
+
+    override fun getItemCount(): Int {
+        return plants.size
+    }
+
+    override fun onBindViewHolder(holder: PlantViewHolder, position: Int) {
+
+        val currentPlant = plants[position]
+
+        if (currentPlant.imageData == null || currentPlant.imageData == "null") {
+            holder.plant_image.visibility = View.INVISIBLE
+        }
+        holder.plant_name.text = currentPlant.name
+
+        holder.plant_species.text = currentPlant.species
+    }
+
+
+    interface OnItemClickListener {
+        fun onItemClick(plant: Plant)
     }
 }

@@ -1,7 +1,9 @@
 package com.example.egarden
 
+import android.content.ContentValues
 import android.content.Intent
 import android.os.Bundle
+import android.util.Log
 import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageView
@@ -9,9 +11,14 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import com.example.egarden.Models.Global
-import com.example.egarden.Models.Image
-import com.example.egarden.Models.Plant
-import com.example.egarden.Models.User
+import com.example.egarden.data.User
+import com.google.android.gms.tasks.Task
+import com.google.firebase.auth.AuthResult
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.database.DatabaseReference
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.ktx.Firebase
 
 class RegisterActivity : AppCompatActivity(){
 
@@ -21,13 +28,27 @@ class RegisterActivity : AppCompatActivity(){
     private lateinit var etRePassword: EditText
     private lateinit var btnSignUp: Button
     private lateinit var btnSignIn: Button
+    private lateinit var auth: FirebaseAuth
+   // private lateinit var binding : ActivityMainBinding\
+    private var firebaseReference : FirebaseDatabase? = null
+    private var UserDatabaseReference : DatabaseReference? = null
+    //private var PlantDatabaseReference : DatabaseReference? = null
+    private var Authentication: Boolean = false
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_register)
 
-        insertSampleData()
+        auth = FirebaseAuth.getInstance()
+        val uid = auth.currentUser?.uid
+        UserDatabaseReference = FirebaseDatabase.getInstance().getReference("User")
+        //PlantDatabaseReference = FirebaseDatabase.getInstance().getReference("Plant")
+
+        // Initialize Firebase Auth
+        auth = Firebase.auth
+        //insertSampleData()
+        // Initialize views
         initView()
 
         //Sign in user
@@ -38,20 +59,21 @@ class RegisterActivity : AppCompatActivity(){
         // Sign up user
         btnSignUp.setOnClickListener {
             // Perform input validation
-            val isValid = performSignUp()
-
-            if (isValid) {
-                Toast.makeText(this,"Successfully signed up!", Toast.LENGTH_SHORT).show()
-                val SigninIntent = Intent(this,LoginActivity::class.java)
-                startActivity(SigninIntent)
-            }else{
-                Toast.makeText(this,"Sign up failed, please try again!", Toast.LENGTH_SHORT).show()
-            }
+            performSignUp()
         }
 
         val imgIcon : ImageView = findViewById(R.id.imgIcon)
         val drawable = ContextCompat.getDrawable(this, R.drawable.logo)
         imgIcon.setImageDrawable(drawable)
+    }
+
+    public override fun onStart() {
+        super.onStart()
+        // Check if user is signed in (non-null) and update UI accordingly.
+        val currentUser = auth.currentUser
+        if (currentUser != null) {
+            //reload()
+        }
     }
 
     private fun clearTextBox(){
@@ -62,52 +84,75 @@ class RegisterActivity : AppCompatActivity(){
         etRePassword.setText("")
     }
 
-    private fun performSignUp(): Boolean {
+    private fun performSignUp() {
 
         val username = etUserName.text.toString()
         val email = etEmail.text.toString()
         val password = etPassword.text.toString()
         val confirmPassword = etRePassword.text.toString()
+        val freeCoins = 10
 
         // Perform input validation
         if (username.equals("") || password.equals("") || confirmPassword.equals("") || email.equals("")) {
+            //clear text
             clearTextBox()
             Toast.makeText(this, "Please fill in all fields", Toast.LENGTH_SHORT).show()
-            return false
+            return
         }
 
         if (password != confirmPassword) {
-            clearTextBox()
+            //clear passwords
+            etPassword.setText("")
+            etRePassword.setText("")
             Toast.makeText(this, "Passwords do not match", Toast.LENGTH_SHORT).show()
-            return false
+            return
         }
 
         // Check if the username is already taken
         val isUsernameTaken = Global.users.any { it.name == username }
         if (isUsernameTaken) {
-            clearTextBox()
+            etUserName.setText("")
             Toast.makeText(this, "Username Taken!", Toast.LENGTH_SHORT).show()
-            return false
+            return
         }
 
         // Check if the email is already taken
         val isEmailTaken = Global.users.any { it.email == email }
         if (isEmailTaken) {
-            clearTextBox()
+            etEmail.setText("")
             Toast.makeText(this, "Email Taken!", Toast.LENGTH_SHORT).show()
-            return false
+            return
         }
+
         // Create a new User object
-        val newUser = User(username, email, password)
-
+        val newUser = User(null, username, password, email)
         // Add the user to the Global.users list
-        Global.users.add(newUser)
+        if (newUser != null) {
+            auth.createUserWithEmailAndPassword(email, password)
+                .addOnCompleteListener { task: Task<AuthResult> ->
+                    if (task.isSuccessful) {
+                        val firebaseUser = auth.currentUser
+                        val uid = firebaseUser?.uid
+                        newUser.uid = uid
 
-        return true
+                        UserDatabaseReference?.child(uid ?: "")?.setValue(newUser)
+
+                        //navigate the user to the login screen
+                        Toast.makeText(this, "User Registered!", Toast.LENGTH_SHORT).show()
+                        val intent = Intent(this, LoginActivity::class.java)
+                        startActivity(intent)
+
+                    } else {
+                        Log.w(ContentValues.TAG, "createUserWithEmail:failure", task.exception)
+
+                        Toast.makeText(this, task.exception?.message, Toast.LENGTH_SHORT).show()
+                    }
+                }
+        }
     }
 
-    private fun insertSampleData() {
-        val testUser = User("coby", "coby@email.com", "1234")
+    /*private fun insertSampleData() {
+        val testUser = User("coby", "coby@gmail.com", "123456")
         Global.users.add(testUser)
 
         val pictures = arrayOf(R.drawable.climbing_bamboo,R.drawable.cacti,R.drawable.cannabis,
@@ -126,9 +171,10 @@ class RegisterActivity : AppCompatActivity(){
             val drawable = resources.getDrawable(pictures[i])
             img.setImageDrawable(drawable)
             Plant = Plant("coby", plant_names[i].uppercase(), plant_species[i].uppercase(), Image.convertImageToBase64(img))
+            PlantDatabaseReference!!.child(plant_names[i]).setValue(Plant)
             Global.plants.add(Plant)
         }
-    }
+    }*/
 
     private fun initView() {
         etUserName = findViewById(R.id.etUserName)

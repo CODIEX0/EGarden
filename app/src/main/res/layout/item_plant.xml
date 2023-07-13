@@ -13,20 +13,21 @@
         android:layout_width="match_parent"
         android:layout_height="120dp"
         android:background="@color/cardBackground">
+
         <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imgPlantImage"
             android:layout_width="120dp"
             android:layout_height="120dp"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
             android:background="@android:drawable/ic_menu_gallery"
             android:padding="5dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
             app:shapeAppearanceOverlay="@style/circular"
             app:strokeColor="@color/buttonColor"
             app:strokeWidth="2dp"
             tools:visibility="visible">
 
-    </com.google.android.material.imageview.ShapeableImageView>
+        </com.google.android.material.imageview.ShapeableImageView>
 
         <TextView
             android:id="@+id/tvpn"
@@ -76,6 +77,17 @@
             android:textSize="15sp"
             app:layout_constraintStart_toEndOf="@+id/tvps"
             app:layout_constraintTop_toBottomOf="@+id/tvPlantName" />
+
+        <Button
+            android:id="@+id/btnViewPlant"
+            android:layout_width="90dp"
+            android:layout_height="40dp"
+            android:layout_marginEnd="160dp"
+            android:layout_marginBottom="16dp"
+            android:backgroundTint="@color/buttonColor"
+            android:text="view"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 

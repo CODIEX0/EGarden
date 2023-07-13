@@ -3,18 +3,24 @@ package com.example.egarden
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.ViewGroup
-import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.provider.MediaStore
+import android.util.Base64
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
 import android.widget.Toast
+import androidx.navigation.Navigation
+import com.example.egarden.Models.Global
+import com.example.egarden.data.DataManager
+import com.example.egarden.data.Plant
 import com.github.dhaval2404.imagepicker.ImagePicker
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.io.ByteArrayOutputStream
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -34,6 +40,8 @@ class AddPlantFragment : Fragment() {
     private lateinit var imgPlantImage : ImageView
     private lateinit var btnAddPlant : Button
     private lateinit var camera_button: FloatingActionButton
+    private lateinit var txtname: TextView
+    private lateinit var txtSpecies: TextView
 
     val REQUEST_IMAGE_CAPTURE = 100
 
@@ -51,10 +59,13 @@ class AddPlantFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_add_plant, container, false)
 
         initializeViews()
-        /*imgPlantImage.setOnClickListener{
-            //take a photo using the camera app
-            addPicture(view)
-        }*/
+        imgPlantImage.setOnClickListener{
+            ImagePicker.with(this)
+                .crop()                     //crop image(optional), check customization for more options
+                .compress(1024)             //final image size will be less than 1 MB
+                .maxResultSize(1080,1080)   //final image resolution will be less than 1080 x 1080
+                .start()
+        }
 
         camera_button.setOnClickListener {
             ImagePicker.with(this)
@@ -64,11 +75,16 @@ class AddPlantFragment : Fragment() {
                 .start()
         }
 
+        btnAddPlant.setOnClickListener {
+
+        }
+
         return view
     }
 
     private fun initializeViews(){
 
+        txtname = requireView().findViewById(R.id.txtPlantName) as TextView
         imgPlantImage = requireView().findViewById(R.id.imgPlantImage) as ImageView
         btnAddPlant = requireView().findViewById(R.id.btnAddPlant) as Button
         camera_button = requireView().findViewById(R.id.fabtnCamera) as FloatingActionButton
@@ -106,13 +122,70 @@ class AddPlantFragment : Fragment() {
         imgPlantImage.setImageURI(data?.data)
     }
 
-     /*fun addPicture(view: View) {
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+     fun addPlant() {
+         //Variables
+         var name : String
+         var species : String
+         var imageData : String
 
-        try{
-            startActivityForResult(takePictureIntent,REQUEST_IMAGE_CAPTURE)
-        }catch(e: ActivityNotFoundException){
-            Toast.makeText(requireContext(),"Error: " + e.localizedMessage,Toast.LENGTH_SHORT).show()
+         //Get data from page
+         name = txtname.text.toString()
+         species = txtSpecies.text.toString()
+
+         imageData = convertImageToBase64(imgPlantImage).toString()
+
+         if (name == "") {
+             Toast.makeText(activity, "Enter the plant's name", Toast.LENGTH_SHORT).show()
+             return
+         }
+         if (species == "") {
+             Toast.makeText(activity, "Enter the plant's species", Toast.LENGTH_SHORT).show()
+             return
+         }
+
+         val plant = Plant(
+             Global.currentUser?.uid.toString(), //Store UID to create relationship
+             name,
+             species,
+             imageData
+         )
+
+         //Add category to DB and update local storage
+         DataManager.addPlant(plant) { isSuccess -> //Use callback to wait for results
+             if (isSuccess)
+             {
+                 //Update local categories list
+                 DataManager.getPlants(Global.currentUser!!.uid.toString()) { plants ->
+                     Global.plants = plants
+                 }
+                 Toast.makeText(activity, "Plant Created Successfully!", Toast.LENGTH_SHORT).show()
+
+             } else {
+                 Toast.makeText(activity, "Plant Creation Failed...", Toast.LENGTH_LONG).show()
+             }
+
+         }
+    }
+
+    private fun convertImageToBase64(imageView: ImageView): String? {
+        val drawable = imageView.drawable
+        if (drawable is BitmapDrawable) {
+            val bitmap = drawable.bitmap
+            if (bitmap != null) {
+                val byteArrayOutputStream = ByteArrayOutputStream()
+                bitmap.compress(Bitmap.CompressFormat.PNG, 100, byteArrayOutputStream)
+                val byteArray = byteArrayOutputStream.toByteArray()
+                return Base64.encodeToString(byteArray, Base64.DEFAULT)
+            }
         }
-    }*/
+        return null
+    }
+
+    fun replaceFragment(fragment : Fragment){
+
+        val fragmentManager = requireActivity().supportFragmentManager
+        val fragmentTransaction = fragmentManager.beginTransaction()
+        fragmentTransaction.replace(R.id.fragment_container,fragment)
+        fragmentTransaction.commit()
+    }
 }

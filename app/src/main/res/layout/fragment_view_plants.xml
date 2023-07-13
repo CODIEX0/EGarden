@@ -12,7 +12,8 @@
     <view class="androidx.recyclerview.widget.RecyclerView"
         android:id="@+id/rvViewGarden"
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        tools:listitem="@layout/item_plant">
 
     </view>
 

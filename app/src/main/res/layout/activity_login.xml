@@ -45,14 +45,14 @@
         >
 
         <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="@drawable/user"
+            android:layout_width="25dp"
+            android:layout_height="30dp"
+            android:background="@android:drawable/sym_action_email"
             android:layout_gravity="center"
             android:gravity="bottom"
             android:layout_marginStart="10dp"/>
         <EditText
-            android:id="@+id/etname"
+            android:id="@+id/edtEmail"
             android:layout_width="245dp"
             android:layout_height="48dp"
             android:layout_gravity="center"
@@ -60,9 +60,8 @@
             android:gravity="fill_vertical"
             android:textStyle="bold"
             android:background="#00FFFFFF"
-            android:hint="@string/user_name"
-            android:text="coby"
-            android:inputType="textPersonName"
+            android:hint="Email"
+            android:inputType="textEmailAddress"
             android:textColor="@color/text_color"
             android:textColorHint="@color/text_color" />
 
@@ -78,8 +77,8 @@
         >
 
         <ImageView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="25dp"
+            android:layout_height="25dp"
             android:background="@drawable/password"
             android:layout_gravity="center"
             android:gravity="bottom"
@@ -94,7 +93,6 @@
             android:textStyle="bold"
             android:background="#00FFFFFF"
             android:hint="@string/password"
-            android:text="1234"
             android:inputType="textPassword"
             android:textColor="@color/text_color"
             android:textColorHint="@color/text_color" />
