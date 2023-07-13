@@ -4,6 +4,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.egarden.Repository.UserRepository
+import com.example.egarden.data.User
 
 class UserViewModel : ViewModel() {
 

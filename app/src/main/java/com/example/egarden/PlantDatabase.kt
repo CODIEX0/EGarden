@@ -1,6 +1,6 @@
 package com.example.egarden
 
-import com.example.egarden.Models.Plant
+import com.example.egarden.data.Plant
 
 class PlantDatabase {
     private val plants: MutableList<Plant> = mutableListOf()

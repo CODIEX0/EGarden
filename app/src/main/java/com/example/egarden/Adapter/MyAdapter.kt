@@ -7,10 +7,10 @@ import android.widget.ImageView
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.example.egarden.Models.Image
-import com.example.egarden.Models.Plant
+import com.example.egarden.data.Plant
 import com.example.egarden.R
 
-class MyAdapter(private val plantList: List<Plant>) : RecyclerView.Adapter<MyAdapter.PlantViewHolder>() {
+class MyAdapter(private val plants: List<Plant>) : RecyclerView.Adapter<MyAdapter.PlantViewHolder>() {
 
     inner class PlantViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
@@ -34,7 +34,7 @@ class MyAdapter(private val plantList: List<Plant>) : RecyclerView.Adapter<MyAda
             itemView.setOnClickListener {
                 val position = adapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    val plant = plantList[position]
+                    val plant = plants[position]
                     // Call the onItemClick method of the listener with the clicked entry
                     onItemClickListener?.onItemClick(plant)
                 }
@@ -47,13 +47,13 @@ class MyAdapter(private val plantList: List<Plant>) : RecyclerView.Adapter<MyAda
     }
 
     override fun onBindViewHolder(holder: PlantViewHolder, position: Int) {
-        val plant = plantList[position]
+        val plant = plants[position]
         holder.bind(plant)
     }
 
 
     override fun getItemCount(): Int {
-        return plantList.size
+        return plants.size
     }
 
     fun updatePlantList(plantList: List<Plant>) {

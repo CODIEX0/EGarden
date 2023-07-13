@@ -89,13 +89,18 @@
                 android:gravity="center"/>
         </LinearLayout>
 
-        <ImageView
+        <com.google.android.material.imageview.ShapeableImageView
             android:id="@+id/imgPlant"
-            android:layout_width="150dp"
-            android:layout_height="150dp"
+            android:layout_width="250dp"
+            android:layout_height="250dp"
             android:layout_marginBottom="11sp"
             android:scaleType="centerCrop"
-            tools:background="@android:drawable/ic_menu_gallery" />
+            android:background="@android:drawable/ic_menu_gallery"
+            android:padding="5dp"
+            app:shapeAppearanceOverlay="@style/circular"
+            app:strokeColor="@color/buttonColor"
+            app:strokeWidth="5dp"
+            tools:visibility="visible"/>
 
         <LinearLayout
             android:layout_width="wrap_content"

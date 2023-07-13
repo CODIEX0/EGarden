@@ -5,27 +5,29 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.widget.Button
 import android.widget.Toast
-import androidx.annotation.NonNull
 import androidx.fragment.app.Fragment
-import androidx.navigation.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
-import com.example.egarden.Adapter.MyAdapter
 import com.google.android.material.bottomnavigation.BottomNavigationView
+import com.google.firebase.auth.FirebaseAuth
 
 class MenuActivity : AppCompatActivity(), OnCardClickListener{
+    private lateinit var auth: FirebaseAuth
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_menu)
 
+        auth = FirebaseAuth.getInstance()
+
         val signoutButton = findViewById<Button>(R.id.btnSignOut)
-
         signoutButton.setOnClickListener {
-            Toast.makeText(this,"Signed Out Successfully!", Toast.LENGTH_SHORT).show()
+            //signing the current user out of firebase
+            auth.signOut()
 
+            Toast.makeText(this,"Signing out...", Toast.LENGTH_SHORT).show()
+            //navigating to the login activity
             val signoutIntent = Intent(this,LoginActivity::class.java)
             startActivity(signoutIntent)
+
         }
         val bottomNav = findViewById<BottomNavigationView>(R.id.bottom_navigation)
         bottomNav.setOnNavigationItemSelectedListener(navListener)
@@ -41,16 +43,14 @@ class MenuActivity : AppCompatActivity(), OnCardClickListener{
         lateinit var selectedFragment: Fragment
 
         when (menuItem.itemId) {
+
             R.id.navigation_add_new_plant -> {
-                Toast.makeText(this, "Add a Unique Plant to Your Garden.", Toast.LENGTH_SHORT).show()
                 selectedFragment = NewPlantFragment()
             }
             R.id.navigation_home -> {
-                Toast.makeText(this, "Navigating to Your Dashboard...", Toast.LENGTH_SHORT).show()
                 selectedFragment = HomeFragment()
             }
             R.id.navigation_view_garden -> {
-                Toast.makeText(this, "Navigating to Your Garden...", Toast.LENGTH_SHORT).show()
                 selectedFragment = ViewPlantsFragment()
             }
         }

@@ -1,5 +1,8 @@
 package com.example.egarden.Models
 
+import com.example.egarden.data.Plant
+import com.example.egarden.data.User
+
 
 //Singleton class for storing live data
 object Global {

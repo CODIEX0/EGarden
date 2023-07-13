@@ -5,15 +5,14 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.lifecycle.Observer
-import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.egarden.Adapter.MyAdapter
+import com.example.egarden.Adapter.PlantAdapter
 import com.example.egarden.Models.Global
-import com.example.egarden.Models.Plant
-import com.example.egarden.Models.PlantViewModel
+import com.example.egarden.Models.Global.plants
+import com.example.egarden.data.DataManager
+import com.example.egarden.data.Plant
 
 // TODO: Rename parameter arguments, choose names that match
 // the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
@@ -26,11 +25,7 @@ private const val ARG_PARAM2 = "param2"
  * create an instance of this fragment.
  */
 
-private lateinit var viewModel : PlantViewModel
-lateinit var plantRecyclerView : RecyclerView
-lateinit var adapter : MyAdapter
-
-class ViewPlantsFragment : Fragment(), MyAdapter.OnItemClickListener {
+class ViewPlantsFragment : Fragment(), PlantAdapter.OnItemClickListener {
     // TODO: Rename and change types of parameters
     private var param1: String? = null
     private var param2: String? = null
@@ -75,27 +70,30 @@ class ViewPlantsFragment : Fragment(), MyAdapter.OnItemClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        plantRecyclerView = view.findViewById(R.id.rvViewGarden)
-        plantRecyclerView.layoutManager = LinearLayoutManager(context)
-        plantRecyclerView.setHasFixedSize(true)
+        val lstPlants = view.findViewById<RecyclerView>(R.id.rvViewGarden)
 
-        adapter = MyAdapter(Global.plants)
-        plantRecyclerView.adapter  = adapter
+        // Set up the LinearLayoutManager for the RecyclerView
+        val plantLayoutManager = LinearLayoutManager(requireContext())
+        lstPlants.layoutManager = plantLayoutManager
 
-        viewModel = ViewModelProvider(this).get(PlantViewModel::class.java)
+        // Retrieve updated plants
+        DataManager.getPlants(Global.currentUser!!.uid.toString()) { plants ->
+            // Update the global plants list
+            Global.plants = plants
 
-        viewModel.allPlants.observe(viewLifecycleOwner, Observer {
+            // Create an instance of PlantAdapter and pass the OnItemClickListener
+            val plantAdapter = PlantAdapter(Global.plants, this)
 
-            adapter.updatePlantList(it)
+            // Set the adapter to the RecyclerView
+            lstPlants.adapter = plantAdapter
         }
-        )
     }
 
     override fun onItemClick(plant: Plant) {
         // Handle the click event and navigate to a different fragment
         //Add data to bundle
         val bundle = Bundle()
-        bundle.putString("username", plant.username)
+        bundle.putString("username", plant.UID)
         bundle.putString("name", plant.name)
         bundle.putString("species", plant.species)
         bundle.putString("imageData", plant.imageData)
