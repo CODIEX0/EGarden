@@ -1,0 +1,29 @@
+{
+  "common": {
+    "loading": "Kuyalayisha...",
+    "error": "Iphutha",
+    "success": "Impumelelo",
+    "cancel": "Khansela",
+    "save": "Gcina",
+    "delete": "Susa",
+    "edit": "Hlela",
+    "add": "Engeza",
+    "search": "Sesha",
+    "filter": "Hlungi",
+    "retry": "Zama futhi",
+    "back": "Emuva",
+    "next": "Okulandelayo",
+    "done": "Kwenziwe",
+    "yes": "Yebo",
+    "no": "Cha"
+  },
+  "navigation": {
+    "garden": "Igadi",
+    "community": "Umphakathi",
+    "market": "Imarike",
+    "shop": "Isitolo",
+    "donations": "Iminikelo",
+    "profile": "Iphrofayili",
+    "reminders": "Izikhumbuzi"
+  }
+}

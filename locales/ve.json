@@ -1,0 +1,29 @@
+{
+  "common": {
+    "loading": "Kho u khou laedza...",
+    "error": "Vhukhakhi",
+    "success": "Khongolose",
+    "cancel": "Khansela",
+    "save": "Dzhenisa",
+    "delete": "Thuthuwedza",
+    "edit": "Khwinisa",
+    "add": "Engedza",
+    "search": "Toda",
+    "filter": "Nanga",
+    "retry": "Lingedza hafhu",
+    "back": "Murahu",
+    "next": "Zwo tevhelaho",
+    "done": "Zwo itwa",
+    "yes": "Ee",
+    "no": "Hai"
+  },
+  "navigation": {
+    "garden": "Tshimo",
+    "community": "Tshitshavha",
+    "market": "Maraga",
+    "shop": "Tshitolo",
+    "donations": "Zwipo",
+    "profile": "Phurofile",
+    "reminders": "Zwikhumbulusi"
+  }
+}

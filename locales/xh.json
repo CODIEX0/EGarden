@@ -1,0 +1,35 @@
+{
+  "common": {
+    "loading": "Iyalayisha...",
+    "error": "Impazamo",
+    "success": "Impumelelo",
+    "cancel": "Rhoxisa",
+    "save": "Gcina",
+    "delete": "Cima",
+    "edit": "Hlela",
+    "add": "Yongeza",
+    "search": "Khangela",
+    "filter": "Hluzela",
+    "retry": "Zama kwakhona",
+    "back": "Emva",
+    "next": "Okulandelayo",
+    "done": "Kwenziwe",
+    "yes": "Ewe",
+    "no": "Hayi"
+  },
+  "navigation": {
+    "garden": "Igadi",
+    "community": "Uluntu",
+    "market": "Imarike",
+    "shop": "Ivenkile",
+    "donations": "Iminikelo",
+    "profile": "Iprofayile",
+    "reminders": "Izikhumbuzi"
+  },
+  "garden": {
+    "title": "Igadi Yam",
+    "addNewPlant": "Yongeza isityalo esitsha",
+    "myPlants": "Izityalo zam",
+    "waterNow": "Nkcenkceshela ngoku!"
+  }
+}

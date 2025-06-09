@@ -1,0 +1,29 @@
+{
+  "common": {
+    "loading": "Yi nga layicha...",
+    "error": "Xihoxo",
+    "success": "Ku humelela",
+    "cancel": "Khansela",
+    "save": "Hlayisa",
+    "delete": "Susa",
+    "edit": "Lulamisa",
+    "add": "Engetela",
+    "search": "Lava",
+    "filter": "Hlawula",
+    "retry": "Ringeta nakambe",
+    "back": "Endzhaku",
+    "next": "Lexi landzelaka",
+    "done": "Ku endliwe",
+    "yes": "Ina",
+    "no": "E-e"
+  },
+  "navigation": {
+    "garden": "Rirhi",
+    "community": "Vaaki",
+    "market": "Makete",
+    "shop": "Xitolo",
+    "donations": "Swiphiwo",
+    "profile": "Phurofayili",
+    "reminders": "Swikhumbuxi"
+  }
+}

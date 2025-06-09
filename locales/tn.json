@@ -1,0 +1,29 @@
+{
+  "common": {
+    "loading": "E a laela...",
+    "error": "Phoso",
+    "success": "Katlego",
+    "cancel": "Khansela",
+    "save": "Boloka",
+    "delete": "Phimola",
+    "edit": "Baakanya",
+    "add": "Tsenya",
+    "search": "Batla",
+    "filter": "Kgetha",
+    "retry": "Leka gape",
+    "back": "Morago",
+    "next": "Se se latelang",
+    "done": "Fedile",
+    "yes": "Ee",
+    "no": "Nnyaa"
+  },
+  "navigation": {
+    "garden": "Tshimo",
+    "community": "Setshaba",
+    "market": "Mmaraka",
+    "shop": "Lebenkeleng",
+    "donations": "Dimpho",
+    "profile": "Profaele",
+    "reminders": "Dikgopotso"
+  }
+}

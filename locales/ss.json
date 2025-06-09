@@ -1,0 +1,29 @@
+{
+  "common": {
+    "loading": "Kuyalayisha...",
+    "error": "Liphutsa",
+    "success": "Kuyaphumelela",
+    "cancel": "Khansela",
+    "save": "Gcina",
+    "delete": "Susa",
+    "edit": "Hlela",
+    "add": "Engeta",
+    "search": "Sesha",
+    "filter": "Hlungi",
+    "retry": "Phindze uzame",
+    "back": "Emuva",
+    "next": "Lokulandzelako",
+    "done": "Kwentiwe",
+    "yes": "Yebo",
+    "no": "Cha"
+  },
+  "navigation": {
+    "garden": "Ligadi",
+    "community": "Umphakathi",
+    "market": "Limarike",
+    "shop": "Sitolo",
+    "donations": "Tiphiwo",
+    "profile": "Liphrofayili",
+    "reminders": "Tikhumbutsi"
+  }
+}
