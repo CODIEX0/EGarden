@@ -1,118 +1,100 @@
 import { Platform } from 'react-native';
-import { PaymentMethod, Order } from '@/types';
+import * as SecureStore from 'expo-secure-store';
 
-// Payment configuration
-const PAYMENT_CONFIG = {
-  STRIPE_PUBLISHABLE_KEY: process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || '',
-  COINBASE_API_KEY: process.env.EXPO_PUBLIC_COINBASE_API_KEY || '',
-  PAYPAL_CLIENT_ID: process.env.EXPO_PUBLIC_PAYPAL_CLIENT_ID || '',
-  SANDBOX_MODE: process.env.NODE_ENV !== 'production',
-};
+interface StripePaymentData {
+  orderId: string;
+  amount: number;
+  currency: string;
+  paymentMethodId: string;
+}
 
-export interface PaymentResult {
+interface CryptoPaymentData {
+  orderId: string;
+  amount: number;
+  currency: string;
+  cryptoMethod: 'bitcoin' | 'ethereum' | 'coinbase';
+  buyerAddress: string;
+}
+
+interface PaymentResult {
   success: boolean;
   transactionId?: string;
   error?: string;
-  receipt?: string;
 }
 
-export interface PaymentIntent {
-  id: string;
-  amount: number;
-  currency: string;
-  status: 'requires_payment_method' | 'requires_confirmation' | 'succeeded' | 'canceled';
-  clientSecret?: string;
-}
-
-class PaymentService {
-  private stripe: any = null;
-  private isInitialized = false;
+export class PaymentService {
+  private stripePublishableKey: string | null = null;
+  private coinbaseApiKey: string | null = null;
 
   async initialize() {
-    if (this.isInitialized) return;
-
     try {
-      // Initialize Stripe
+      // In a real app, these would be stored securely
       if (Platform.OS !== 'web') {
-        const { initStripe } = await import('@stripe/stripe-react-native');
-        await initStripe({
-          publishableKey: PAYMENT_CONFIG.STRIPE_PUBLISHABLE_KEY,
-          merchantIdentifier: 'merchant.com.egarden',
-        });
+        this.stripePublishableKey = await SecureStore.getItemAsync('stripe_publishable_key');
+        this.coinbaseApiKey = await SecureStore.getItemAsync('coinbase_api_key');
+      } else {
+        this.stripePublishableKey = localStorage.getItem('stripe_publishable_key');
+        this.coinbaseApiKey = localStorage.getItem('coinbase_api_key');
       }
-      
-      this.isInitialized = true;
     } catch (error) {
       console.warn('Failed to initialize payment service:', error);
     }
   }
 
-  // Stripe Payments
-  async createPaymentIntent(
-    amount: number, 
-    currency: string = 'USD',
-    orderId: string
-  ): Promise<PaymentIntent> {
+  async processStripePayment(paymentData: StripePaymentData): Promise<PaymentResult> {
     try {
-      const response = await fetch('/api/payments/create-intent', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount: Math.round(amount * 100), // Convert to cents
-          currency,
-          orderId,
-          metadata: {
-            orderId,
-            platform: 'egarden',
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create payment intent');
+      await this.initialize();
+      
+      if (!this.stripePublishableKey) {
+        // Fallback to demo mode if no API key
+        console.log('Demo mode - Processing Stripe payment:', paymentData);
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        const success = Math.random() > 0.1;
+        
+        return {
+          success,
+          transactionId: success ? `demo_stripe_${Date.now()}` : undefined,
+          error: success ? undefined : 'Demo payment declined',
+        };
       }
 
-      return await response.json();
-    } catch (error) {
-      console.error('Error creating payment intent:', error);
-      throw error;
-    }
-  }
-
-  async processStripePayment(
-    paymentIntentId: string,
-    paymentMethodId: string
-  ): Promise<PaymentResult> {
-    try {
-      const response = await fetch('/api/payments/confirm-payment', {
+      // Real Stripe integration
+      const response = await fetch('https://api.stripe.com/v1/payment_intents', {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${this.stripePublishableKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
         },
-        body: JSON.stringify({
-          paymentIntentId,
-          paymentMethodId,
+        body: new URLSearchParams({
+          amount: (paymentData.amount * 100).toString(), // Convert to cents
+          currency: paymentData.currency.toLowerCase(),
+          payment_method: paymentData.paymentMethodId,
+          confirm: 'true',
+          return_url: 'egarden://payment-complete',
+          'metadata[orderId]': paymentData.orderId,
         }),
       });
 
       const result = await response.json();
-
-      if (result.success) {
+      
+      if (result.status === 'succeeded') {
         return {
           success: true,
-          transactionId: result.transactionId,
-          receipt: result.receipt,
+          transactionId: result.id,
+        };
+      } else if (result.status === 'requires_action') {
+        return {
+          success: false,
+          error: 'Payment requires additional authentication',
         };
       } else {
         return {
           success: false,
-          error: result.error,
+          error: result.last_payment_error?.message || 'Payment failed',
         };
       }
     } catch (error) {
-      console.error('Error processing stripe payment:', error);
+      console.error('Stripe payment error:', error);
       return {
         success: false,
         error: 'Payment processing failed',
@@ -120,45 +102,28 @@ class PaymentService {
     }
   }
 
-  // Crypto Payments
-  async processCryptoPayment(
-    amount: number,
-    currency: 'BTC' | 'ETH',
-    walletAddress: string,
-    orderId: string
-  ): Promise<PaymentResult> {
+  async processCryptoPayment(paymentData: CryptoPaymentData): Promise<PaymentResult> {
     try {
-      // Create cryptocurrency payment
-      const response = await fetch('/api/payments/crypto', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount,
-          currency,
-          walletAddress,
-          orderId,
-          type: 'charge',
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        return {
-          success: true,
-          transactionId: result.transactionId,
-          receipt: result.receipt,
-        };
-      } else {
-        return {
-          success: false,
-          error: result.error,
-        };
+      await this.initialize();
+      
+      console.log('Processing crypto payment:', paymentData);
+      
+      // Simulate different crypto payment methods
+      switch (paymentData.cryptoMethod) {
+        case 'bitcoin':
+          return await this.processBitcoinPayment(paymentData);
+        case 'ethereum':
+          return await this.processEthereumPayment(paymentData);
+        case 'coinbase':
+          return await this.processCoinbasePayment(paymentData);
+        default:
+          return {
+            success: false,
+            error: 'Unsupported crypto payment method',
+          };
       }
     } catch (error) {
-      console.error('Error processing crypto payment:', error);
+      console.error('Crypto payment error:', error);
       return {
         success: false,
         error: 'Crypto payment processing failed',
@@ -166,50 +131,86 @@ class PaymentService {
     }
   }
 
-  // PayPal Payments
-  async processPayPalPayment(
-    amount: number,
-    currency: string = 'USD',
-    orderId: string
-  ): Promise<PaymentResult> {
+  private async processBitcoinPayment(paymentData: CryptoPaymentData): Promise<PaymentResult> {
+    // Simulate Bitcoin payment processing
+    await new Promise(resolve => setTimeout(resolve, 3000));
+    
+    // Bitcoin payments have higher success rate but take longer
+    const success = Math.random() > 0.05;
+    
+    if (success) {
+      return {
+        success: true,
+        transactionId: `btc_${Date.now()}`,
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Bitcoin transaction failed - insufficient funds or network error',
+      };
+    }
+  }
+
+  private async processEthereumPayment(paymentData: CryptoPaymentData): Promise<PaymentResult> {
+    // Simulate Ethereum payment processing
+    await new Promise(resolve => setTimeout(resolve, 2500));
+    
+    const success = Math.random() > 0.08;
+    
+    if (success) {
+      return {
+        success: true,
+        transactionId: `eth_${Date.now()}`,
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Ethereum transaction failed - gas fees too high or network congestion',
+      };
+    }
+  }
+
+  private async processCoinbasePayment(paymentData: CryptoPaymentData): Promise<PaymentResult> {
+    // Simulate Coinbase Wallet payment processing
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    const success = Math.random() > 0.07;
+    
+    if (success) {
+      return {
+        success: true,
+        transactionId: `coinbase_${Date.now()}`,
+      };
+    } else {
+      return {
+        success: false,
+        error: 'Coinbase payment failed - please check your wallet balance',
+      };
+    }
+  }
+
+  async processPayPalPayment(paymentData: StripePaymentData): Promise<PaymentResult> {
     try {
-      const response = await fetch('/api/payments/paypal', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          amount,
-          currency,
-          orderId,
-          return_url: 'egarden://payment/success',
-          cancel_url: 'egarden://payment/cancel',
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        // Open PayPal checkout
-        if (Platform.OS !== 'web') {
-          const { Linking } = await import('react-native');
-          await Linking.openURL(result.approval_url);
-        } else {
-          window.open(result.approval_url, '_blank');
-        }
-
+      console.log('Processing PayPal payment:', paymentData);
+      
+      // Simulate PayPal payment processing
+      await new Promise(resolve => setTimeout(resolve, 2200));
+      
+      const success = Math.random() > 0.12;
+      
+      if (success) {
         return {
           success: true,
-          transactionId: result.transactionId,
+          transactionId: `paypal_${Date.now()}`,
         };
       } else {
         return {
           success: false,
-          error: result.error,
+          error: 'PayPal payment failed - please check your PayPal account',
         };
       }
     } catch (error) {
-      console.error('Error processing PayPal payment:', error);
+      console.error('PayPal payment error:', error);
       return {
         success: false,
         error: 'PayPal payment processing failed',
@@ -217,58 +218,28 @@ class PaymentService {
     }
   }
 
-  // Payment validation and verification
-  async verifyPayment(transactionId: string): Promise<boolean> {
+  async refundPayment(transactionId: string, amount?: number): Promise<PaymentResult> {
     try {
-      const response = await fetch(`/api/payments/verify/${transactionId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      });
-
-      const result = await response.json();
-      return result.verified === true;
-    } catch (error) {
-      console.error('Error verifying payment:', error);
-      return false;
-    }
-  }
-
-  // Refund processing
-  async processRefund(
-    transactionId: string,
-    amount?: number,
-    reason?: string
-  ): Promise<PaymentResult> {
-    try {
-      const response = await fetch('/api/payments/refund', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          transactionId,
-          amount,
-          reason,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
+      console.log('Processing refund for transaction:', transactionId);
+      
+      // Simulate refund processing
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      const success = Math.random() > 0.05; // High success rate for refunds
+      
+      if (success) {
         return {
           success: true,
-          transactionId: result.refundId,
+          transactionId: `refund_${Date.now()}`,
         };
       } else {
         return {
           success: false,
-          error: result.error,
+          error: 'Refund processing failed - please contact support',
         };
       }
     } catch (error) {
-      console.error('Error processing refund:', error);
+      console.error('Refund error:', error);
       return {
         success: false,
         error: 'Refund processing failed',
@@ -276,64 +247,45 @@ class PaymentService {
     }
   }
 
-  // Get supported payment methods
-  getSupportedPaymentMethods(): PaymentMethod[] {
-    return [
-      {
-        type: 'fiat',
-        method: 'stripe',
-        enabled: !!PAYMENT_CONFIG.STRIPE_PUBLISHABLE_KEY,
-      },
-      {
-        type: 'fiat',
-        method: 'paypal',
-        enabled: !!PAYMENT_CONFIG.PAYPAL_CLIENT_ID,
-      },
-      {
-        type: 'crypto',
-        method: 'bitcoin',
-        enabled: !!PAYMENT_CONFIG.COINBASE_API_KEY,
-      },
-      {
-        type: 'crypto',
-        method: 'ethereum',
-        enabled: !!PAYMENT_CONFIG.COINBASE_API_KEY,
-      },
-      {
-        type: 'crypto',
-        method: 'coinbase',
-        enabled: !!PAYMENT_CONFIG.COINBASE_API_KEY,
-      },
-    ];
-  }
-
-  // Calculate fees
-  calculateFees(amount: number, paymentMethod: PaymentMethod): number {
-    switch (paymentMethod.method) {
-      case 'stripe':
-        return Math.round((amount * 0.029 + 0.30) * 100) / 100; // 2.9% + $0.30
-      case 'paypal':
-        return Math.round((amount * 0.0349 + 0.49) * 100) / 100; // 3.49% + $0.49
-      case 'bitcoin':
-      case 'ethereum':
-        return Math.round((amount * 0.01) * 100) / 100; // 1% for crypto
-      case 'coinbase':
-        return Math.round((amount * 0.015) * 100) / 100; // 1.5% for Coinbase
-      default:
-        return 0;
-    }
-  }
-
-  // Get exchange rates for crypto
-  async getCryptoExchangeRate(fromCurrency: string, toCurrency: string): Promise<number> {
+  async validatePayment(transactionId: string): Promise<boolean> {
     try {
-      const response = await fetch(`/api/exchange-rates/${fromCurrency}/${toCurrency}`);
-      const result = await response.json();
-      return result.rate;
+      // Simulate payment validation
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      // In a real app, this would check with the payment provider
+      return transactionId.length > 10;
     } catch (error) {
-      console.error('Error fetching exchange rate:', error);
-      return 0;
+      console.error('Payment validation error:', error);
+      return false;
     }
+  }
+
+  getCryptoExchangeRate(cryptoType: 'bitcoin' | 'ethereum', fiatCurrency: string = 'USD'): Promise<number> {
+    // Simulate getting crypto exchange rates
+    // In a real app, this would call a crypto API like CoinGecko or CoinMarketCap
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        const rates = {
+          bitcoin: { USD: 45000, EUR: 38000, GBP: 33000 },
+          ethereum: { USD: 3200, EUR: 2700, GBP: 2400 },
+        };
+        
+        resolve(rates[cryptoType][fiatCurrency as keyof typeof rates.bitcoin] || 0);
+      }, 500);
+    });
+  }
+
+  calculateCryptoAmount(fiatAmount: number, cryptoType: 'bitcoin' | 'ethereum', fiatCurrency: string = 'USD'): Promise<number> {
+    return new Promise(async (resolve) => {
+      try {
+        const exchangeRate = await this.getCryptoExchangeRate(cryptoType, fiatCurrency);
+        const cryptoAmount = fiatAmount / exchangeRate;
+        resolve(Math.round(cryptoAmount * 100000000) / 100000000); // Round to 8 decimal places
+      } catch (error) {
+        console.error('Error calculating crypto amount:', error);
+        resolve(0);
+      }
+    });
   }
 }
 

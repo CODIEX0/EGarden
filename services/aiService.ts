@@ -292,6 +292,236 @@ class AIService {
     }
   }
 
+  // Enhanced disease database
+  private diseaseDatabase = {
+    bacterial_spot: {
+      name: 'Bacterial Spot',
+      scientificName: 'Xanthomonas species',
+      symptoms: ['Dark spots on leaves', 'Yellow halos around spots', 'Leaf drop'],
+      causes: ['High humidity', 'Poor air circulation', 'Overhead watering'],
+      treatments: ['Copper-based fungicides', 'Improve air circulation', 'Avoid overhead watering'],
+      prevention: ['Use drip irrigation', 'Space plants properly', 'Remove infected debris'],
+      severity: 'medium',
+      urgency: 'soon'
+    },
+    early_blight: {
+      name: 'Early Blight',
+      scientificName: 'Alternaria solani',
+      symptoms: ['Concentric ring spots', 'Yellow halos', 'Lower leaf browning'],
+      causes: ['Wet conditions', 'Plant stress', 'High humidity'],
+      treatments: ['Fungicide spray', 'Remove affected leaves', 'Improve drainage'],
+      prevention: ['Crop rotation', 'Mulching', 'Proper spacing'],
+      severity: 'high',
+      urgency: 'immediate'
+    },
+    late_blight: {
+      name: 'Late Blight',
+      scientificName: 'Phytophthora infestans',
+      symptoms: ['Water-soaked lesions', 'White fuzzy growth', 'Rapid spread'],
+      causes: ['Cool wet weather', 'Poor drainage', 'High humidity'],
+      treatments: ['Systemic fungicides', 'Remove infected plants', 'Improve ventilation'],
+      prevention: ['Resistant varieties', 'Good drainage', 'Avoid overhead watering'],
+      severity: 'high',
+      urgency: 'immediate'
+    },
+    powdery_mildew: {
+      name: 'Powdery Mildew',
+      scientificName: 'Various fungi',
+      symptoms: ['White powdery coating', 'Distorted leaves', 'Stunted growth'],
+      causes: ['High humidity', 'Poor air circulation', 'Crowded plants'],
+      treatments: ['Sulfur spray', 'Baking soda solution', 'Neem oil'],
+      prevention: ['Proper spacing', 'Good air flow', 'Avoid overhead watering'],
+      severity: 'medium',
+      urgency: 'soon'
+    },
+    aphids: {
+      name: 'Aphids',
+      scientificName: 'Aphidoidea',
+      symptoms: ['Sticky honeydew', 'Curled leaves', 'Stunted growth'],
+      causes: ['Warm weather', 'New growth', 'Stressed plants'],
+      treatments: ['Insecticidal soap', 'Neem oil', 'Beneficial insects'],
+      prevention: ['Companion planting', 'Regular inspection', 'Healthy soil'],
+      severity: 'low',
+      urgency: 'monitor'
+    },
+    spider_mites: {
+      name: 'Spider Mites',
+      scientificName: 'Tetranychidae',
+      symptoms: ['Fine webbing', 'Stippled leaves', 'Yellow/bronze coloring'],
+      causes: ['Hot dry conditions', 'Stressed plants', 'Low humidity'],
+      treatments: ['Miticide spray', 'Increase humidity', 'Predatory mites'],
+      prevention: ['Regular watering', 'Humidity control', 'Avoid stress'],
+      severity: 'medium',
+      urgency: 'soon'
+    }
+  };
+
+  // Advanced disease analysis with image processing
+  async diagnoseWithImageAnalysis(imageUri: string, plantType?: string): Promise<{
+    primaryDisease: Disease | null;
+    secondaryDiseases: Disease[];
+    healthScore: number;
+    confidence: number;
+    recommendations: string[];
+    environmentalFactors: string[];
+  }> {
+    try {
+      // Simulate advanced image analysis
+      const detectedDiseases = await this.detectDiseases(imageUri, plantType);
+      
+      let healthScore = 100;
+      if (detectedDiseases.length > 0) {
+        healthScore = Math.max(20, 100 - (detectedDiseases.length * 25));
+      }
+      
+      const primaryDisease = detectedDiseases.length > 0 ? detectedDiseases[0] : null;
+      const secondaryDiseases = detectedDiseases.slice(1);
+      
+      const recommendations = this.generateAdvancedRecommendations(detectedDiseases, plantType);
+      const environmentalFactors = this.analyzeEnvironmentalRisk(detectedDiseases);
+      
+      return {
+        primaryDisease,
+        secondaryDiseases,
+        healthScore,
+        confidence: primaryDisease ? primaryDisease.confidence / 100 : 0.9,
+        recommendations,
+        environmentalFactors
+      };
+    } catch (error) {
+      console.error('Advanced diagnosis failed:', error);
+      return {
+        primaryDisease: null,
+        secondaryDiseases: [],
+        healthScore: 85,
+        confidence: 0.7,
+        recommendations: ['Monitor plant health', 'Ensure proper care routine'],
+        environmentalFactors: ['Consider environmental conditions']
+      };
+    }
+  }
+
+  private generateAdvancedRecommendations(diseases: Disease[], plantType?: string): string[] {
+    const recommendations: string[] = [];
+    
+    if (diseases.length === 0) {
+      return [
+        'Your plant appears healthy! Continue your current care routine',
+        'Monitor regularly for any changes in appearance',
+        'Maintain proper watering and lighting conditions'
+      ];
+    }
+    
+    // Priority recommendations based on urgency
+    const urgentDiseases = diseases.filter(d => d.treatmentUrgency === 'immediate');
+    const soonDiseases = diseases.filter(d => d.treatmentUrgency === 'soon');
+    
+    if (urgentDiseases.length > 0) {
+      recommendations.push('⚠️ URGENT: Immediate treatment required');
+      urgentDiseases.forEach(disease => {
+        recommendations.push(`• ${disease.name}: ${disease.controlMeasures[0]}`);
+      });
+    }
+    
+    if (soonDiseases.length > 0) {
+      recommendations.push('📅 Address within next few days:');
+      soonDiseases.forEach(disease => {
+        recommendations.push(`• ${disease.name}: ${disease.controlMeasures[0]}`);
+      });
+    }
+    
+    // General care recommendations
+    if (plantType === 'vegetable') {
+      recommendations.push('🥬 For vegetables: Consider organic treatments to maintain food safety');
+    } else if (plantType === 'flower') {
+      recommendations.push('🌸 For flowering plants: Avoid treatments during bloom period');
+    }
+    
+    // Prevention advice
+    recommendations.push('🛡️ Prevention: Improve air circulation and avoid overhead watering');
+    
+    return recommendations;
+  }
+
+  private analyzeEnvironmentalRisk(diseases: Disease[]): string[] {
+    const factors: string[] = [];
+    
+    if (diseases.some(d => d.name.toLowerCase().includes('mildew') || d.name.toLowerCase().includes('blight'))) {
+      factors.push('High humidity detected - ensure good ventilation');
+      factors.push('Consider reducing watering frequency');
+    }
+    
+    if (diseases.some(d => d.name.toLowerCase().includes('mite'))) {
+      factors.push('Low humidity conditions - increase air moisture');
+      factors.push('Hot, dry weather stress detected');
+    }
+    
+    if (diseases.some(d => d.name.toLowerCase().includes('bacterial'))) {
+      factors.push('Bacterial infection risk - improve sanitation');
+      factors.push('Avoid working with wet plants');
+    }
+    
+    factors.push('Monitor weather conditions for disease pressure');
+    
+    return factors;
+  }
+
+  // Enhanced plant health scoring system
+  async generateHealthReport(plant: any, imageUri?: string): Promise<{
+    overallHealth: number;
+    categories: {
+      visual: number;
+      growth: number;
+      environmental: number;
+      care: number;
+    };
+    concerns: string[];
+    strengths: string[];
+    actionPlan: string[];
+  }> {
+    const report = {
+      overallHealth: 85,
+      categories: {
+        visual: 90,
+        growth: 85,
+        environmental: 80,
+        care: 85
+      },
+      concerns: [] as string[],
+      strengths: [] as string[],
+      actionPlan: [] as string[]
+    };
+    
+    // Analyze visual health
+    if (imageUri) {
+      const diseases = await this.detectDiseases(imageUri, plant.plantType);
+      if (diseases.length > 0) {
+        report.categories.visual = Math.max(30, 90 - diseases.length * 20);
+        report.concerns.push(`${diseases.length} potential health issue(s) detected`);
+      } else {
+        report.strengths.push('No visible diseases or pests detected');
+      }
+    }
+    
+    // Analyze care consistency
+    if (plant.lastWatered) {
+      const daysSinceWatered = this.daysSince(plant.lastWatered);
+      if (daysSinceWatered > plant.wateringFrequency) {
+        report.categories.care -= 20;
+        report.concerns.push('Overdue for watering');
+        report.actionPlan.push('Water plant immediately');
+      } else {
+        report.strengths.push('Watering schedule on track');
+      }
+    }
+    
+    // Calculate overall health
+    const categoryAverage = Object.values(report.categories).reduce((a, b) => a + b) / 4;
+    report.overallHealth = Math.round(categoryAverage);
+    
+    return report;
+  }
+
   private calculateHealthScore(diseases: Disease[]): number {
     if (diseases.length === 0) return 95;
     

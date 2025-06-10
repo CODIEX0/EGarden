@@ -1,0 +1,33 @@
+{
+  "preset": "react-native",
+  "setupFilesAfterEnv": [
+    "<rootDir>/__tests__/setup.ts"
+  ],
+  "testMatch": [
+    "**/__tests__/**/*.(test|spec).(ts|tsx|js|jsx)"
+  ],
+  "collectCoverageFrom": [
+    "services/**/*.{ts,tsx}",
+    "components/**/*.{ts,tsx}",
+    "app/**/*.{ts,tsx}",
+    "hooks/**/*.{ts,tsx}",
+    "utils/**/*.{ts,tsx}",
+    "!**/*.d.ts",
+    "!**/node_modules/**",
+    "!**/__tests__/**"
+  ],
+  "coverageThreshold": {
+    "global": {
+      "branches": 70,
+      "functions": 70,
+      "lines": 70,
+      "statements": 70
+    }
+  },
+  "moduleNameMapping": {
+    "^@/(.*)$": "<rootDir>/$1"
+  },
+  "transformIgnorePatterns": [
+    "node_modules/(?!(react-native|@react-native|expo|@expo|@react-navigation|react-native-vector-icons|react-native-screens|react-native-safe-area-context)/)"
+  ]
+}

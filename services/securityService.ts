@@ -8,6 +8,11 @@ class SecurityService {
   private sessionTimeout: number = 30; // minutes
   private lastActivity: Date = new Date();
 
+  // Advanced Authentication Security
+  private loginAttempts = new Map<string, { count: number; lastAttempt: Date; lockUntil?: Date }>();
+  private maxLoginAttempts = 5;
+  private lockoutDuration = 15 * 60 * 1000; // 15 minutes
+
   async initialize() {
     try {
       // Generate or retrieve encryption key
@@ -331,6 +336,240 @@ class SecurityService {
     };
     
     return text.replace(/[&<>"']/g, (m) => map[m]);
+  }
+
+  // Advanced Authentication Security
+  async recordFailedLogin(identifier: string): Promise<{ isLocked: boolean; lockUntil?: Date }> {
+    const now = new Date();
+    const attempts = this.loginAttempts.get(identifier) || { count: 0, lastAttempt: now };
+    
+    attempts.count += 1;
+    attempts.lastAttempt = now;
+    
+    if (attempts.count >= this.maxLoginAttempts) {
+      attempts.lockUntil = new Date(now.getTime() + this.lockoutDuration);
+      await this.logSecurityEvent(identifier, 'account_locked', true, 'high');
+    }
+    
+    this.loginAttempts.set(identifier, attempts);
+    
+    // Persist to secure storage
+    await this.setSecureItem(`login_attempts_${identifier}`, JSON.stringify(attempts));
+    
+    return {
+      isLocked: !!attempts.lockUntil && attempts.lockUntil > now,
+      lockUntil: attempts.lockUntil,
+    };
+  }
+
+  async isAccountLocked(identifier: string): Promise<boolean> {
+    const attempts = this.loginAttempts.get(identifier);
+    if (!attempts || !attempts.lockUntil) {
+      // Check persisted data
+      const persistedData = await this.getSecureItem(`login_attempts_${identifier}`);
+      if (persistedData) {
+        const parsed = JSON.parse(persistedData);
+        if (parsed.lockUntil && new Date(parsed.lockUntil) > new Date()) {
+          this.loginAttempts.set(identifier, parsed);
+          return true;
+        }
+      }
+      return false;
+    }
+    
+    return attempts.lockUntil > new Date();
+  }
+
+  async resetLoginAttempts(identifier: string): Promise<void> {
+    this.loginAttempts.delete(identifier);
+    await this.deleteSecureItem(`login_attempts_${identifier}`);
+  }
+
+  // Enhanced Password Security
+  async hashPassword(password: string, salt?: string): Promise<{ hash: string; salt: string }> {
+    const passwordSalt = salt || await this.generateSalt();
+    const hash = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      password + passwordSalt
+    );
+    return { hash, salt: passwordSalt };
+  }
+
+  async verifyPassword(password: string, hash: string, salt: string): Promise<boolean> {
+    const { hash: newHash } = await this.hashPassword(password, salt);
+    return newHash === hash;
+  }
+
+  private async generateSalt(): Promise<string> {
+    const randomBytes = await Crypto.getRandomBytesAsync(16);
+    return Array.from(randomBytes, byte => byte.toString(16).padStart(2, '0')).join('');
+  }
+
+  // Token Management with JWT-like structure
+  async generateSecureToken(userId: string, expiresIn: number = 24 * 60 * 60 * 1000): Promise<string> {
+    const header = { alg: 'HS256', typ: 'JWT' };
+    const payload = {
+      userId,
+      iat: Date.now(),
+      exp: Date.now() + expiresIn,
+    };
+    
+    const encodedHeader = btoa(JSON.stringify(header));
+    const encodedPayload = btoa(JSON.stringify(payload));
+    
+    const signature = await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      `${encodedHeader}.${encodedPayload}.${this.encryptionKey}`
+    );
+    
+    return `${encodedHeader}.${encodedPayload}.${signature}`;
+  }
+
+  async verifyToken(token: string): Promise<{ valid: boolean; userId?: string; expired?: boolean }> {
+    try {
+      const [encodedHeader, encodedPayload, signature] = token.split('.');
+      
+      // Verify signature
+      const expectedSignature = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        `${encodedHeader}.${encodedPayload}.${this.encryptionKey}`
+      );
+      
+      if (signature !== expectedSignature) {
+        return { valid: false };
+      }
+      
+      const payload = JSON.parse(atob(encodedPayload));
+      const now = Date.now();
+      
+      if (payload.exp < now) {
+        return { valid: false, expired: true, userId: payload.userId };
+      }
+      
+      return { valid: true, userId: payload.userId };
+    } catch (error) {
+      return { valid: false };
+    }
+  }
+
+  // Privacy and Data Protection
+  async anonymizeData(data: any, fieldsToAnonymize: string[]): Promise<any> {
+    const anonymized = { ...data };
+    
+    for (const field of fieldsToAnonymize) {
+      if (anonymized[field]) {
+        if (field.includes('email')) {
+          anonymized[field] = this.anonymizeEmail(anonymized[field]);
+        } else if (field.includes('phone')) {
+          anonymized[field] = this.anonymizePhone(anonymized[field]);
+        } else {
+          anonymized[field] = '***ANONYMIZED***';
+        }
+      }
+    }
+    
+    return anonymized;
+  }
+
+  private anonymizeEmail(email: string): string {
+    const [local, domain] = email.split('@');
+    const anonymizedLocal = local.length > 2 
+      ? local.charAt(0) + '*'.repeat(local.length - 2) + local.charAt(local.length - 1)
+      : '***';
+    return `${anonymizedLocal}@${domain}`;
+  }
+
+  private anonymizePhone(phone: string): string {
+    return phone.replace(/\d(?=\d{4})/g, '*');
+  }
+
+  // GDPR Compliance helpers
+  async exportUserData(userId: string): Promise<any> {
+    try {
+      const userData: any = {};
+      
+      // Collect user data from various sources
+      userData.securitySettings = await this.getSecuritySettings(userId);
+      userData.auditLogs = await this.getAuditLogs(userId);
+      userData.loginAttempts = await this.getSecureItem(`login_attempts_${userId}`);
+      
+      return userData;
+    } catch (error) {
+      console.error('Failed to export user data:', error);
+      throw new Error('Data export failed');
+    }
+  }
+
+  async deleteUserData(userId: string): Promise<void> {
+    try {
+      // Delete all user-related secure data
+      await this.deleteSecureItem(`security_settings_${userId}`);
+      await this.deleteSecureItem(`audit_logs_${userId}`);
+      await this.deleteSecureItem(`login_attempts_${userId}`);
+      
+      // Remove from memory
+      this.loginAttempts.delete(userId);
+      this.rateLimitMap.delete(userId);
+      
+      await this.logSecurityEvent(userId, 'user_data_deleted', true, 'medium');
+    } catch (error) {
+      console.error('Failed to delete user data:', error);
+      throw new Error('Data deletion failed');
+    }
+  }
+
+  // Security Monitoring
+  async performSecurityScan(): Promise<{
+    score: number;
+    vulnerabilities: string[];
+    recommendations: string[];
+  }> {
+    const vulnerabilities: string[] = [];
+    const recommendations: string[] = [];
+    let score = 100;
+
+    // Check for development mode
+    if (__DEV__) {
+      vulnerabilities.push('Application running in development mode');
+      score -= 20;
+    }
+
+    // Check encryption key strength
+    if (!this.encryptionKey || this.encryptionKey.length < 32) {
+      vulnerabilities.push('Weak encryption key detected');
+      score -= 15;
+    }
+
+    // Check session timeout
+    if (this.sessionTimeout > 60) {
+      recommendations.push('Consider reducing session timeout for better security');
+      score -= 5;
+    }
+
+    // Check for locked accounts
+    const lockedAccounts = Array.from(this.loginAttempts.values())
+      .filter(attempt => attempt.lockUntil && attempt.lockUntil > new Date()).length;
+    
+    if (lockedAccounts > 0) {
+      recommendations.push(`${lockedAccounts} accounts are currently locked due to failed login attempts`);
+    }
+
+    return {
+      score: Math.max(0, score),
+      vulnerabilities,
+      recommendations,
+    };
+  }
+
+  // Secure Communication
+  async encryptMessage(message: string, recipientPublicKey?: string): Promise<string> {
+    // Simplified encryption - in production, use proper public key cryptography
+    return await this.encrypt(message);
+  }
+
+  async decryptMessage(encryptedMessage: string, privateKey?: string): Promise<string> {
+    // Simplified decryption - in production, use proper private key decryption
+    return await this.decrypt(encryptedMessage);
   }
 }
 

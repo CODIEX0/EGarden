@@ -1,85 +1,79 @@
-import { Tabs } from 'expo-router';
-import { Colors } from '@/constants/Colors';
-import { Leaf, MessageCircle, ShoppingBag, Heart, User, Bell } from 'lucide-react-native';
-import { useAuth } from '@/context/AuthContext';
+import React, { useEffect } from 'react';
+import { Stack } from 'expo-router';
+import { StatusBar } from 'expo-status-bar';
+import { AuthProvider } from '@/context/AuthContext';
+import { LanguageProvider } from '@/context/LanguageContext';
+import { PlantProvider } from '@/context/PlantContext';
+import { useNotifications } from '@/hooks/useNotifications';
+import { imageCacheService } from '@/services/imageCacheService';
+import { monitoringService } from '@/services/monitoringService';
+import { performanceService } from '@/services/performanceService';
+import { securityService } from '@/services/securityService';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
+import '@/config/i18n';
 
-export default function TabLayout() {
-  const { user } = useAuth();
+function RootLayoutNav() {
+  // Initialize notifications
+  useNotifications();
+
+  // Initialize services
+  useEffect(() => {
+    const initializeServices = async () => {
+      try {
+        // Initialize services in parallel for better performance
+        await Promise.all([
+          imageCacheService.initialize(),
+          monitoringService.initialize(),
+          securityService.initialize(),
+        ]);
+
+        // Optimize app state
+        await performanceService.optimizeAppState();
+
+        console.log('All services initialized successfully');
+      } catch (error) {
+        console.error('Failed to initialize services:', error);
+        monitoringService.logError(error as Error, { context: 'service_initialization' }, 'high');
+      }
+    };
+
+    initializeServices();
+
+    // Cleanup on unmount
+    return () => {
+      performanceService.cleanup();
+      monitoringService.cleanup();
+    };
+  }, []);
 
   return (
-    <Tabs
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: Colors.primary[600],
-        tabBarInactiveTintColor: Colors.gray[400],
-        tabBarStyle: {
-          backgroundColor: 'white',
-          borderTopWidth: 1,
-          borderTopColor: Colors.gray[200],
-          paddingBottom: 8,
-          paddingTop: 8,
-          height: 88,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          fontFamily: 'Inter-Medium',
-          marginBottom: 4,
-        },
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Garden',
-          tabBarIcon: ({ size, color }) => (
-            <Leaf size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="reminders"
-        options={{
-          title: 'Reminders',
-          tabBarIcon: ({ size, color }) => (
-            <Bell size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="community"
-        options={{
-          title: 'Community',
-          tabBarIcon: ({ size, color }) => (
-            <MessageCircle size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="market"
-        options={{
-          title: user?.userType === 'buyer' ? 'Market' : 'Shop',
-          tabBarIcon: ({ size, color }) => (
-            <ShoppingBag size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="donations"
-        options={{
-          title: 'Donations',
-          tabBarIcon: ({ size, color }) => (
-            <Heart size={size} color={color} />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: 'Profile',
-          tabBarIcon: ({ size, color }) => (
-            <User size={size} color={color} />
-          ),
-        }}
-      />
-    </Tabs>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="onboarding/index" />
+      <Stack.Screen name="auth" />
+      <Stack.Screen name="(tabs)" />
+      <Stack.Screen name="plant" />
+      <Stack.Screen name="ai" />
+      <Stack.Screen name="settings" />
+      <Stack.Screen name="reminders" />
+      <Stack.Screen name="gamification" />
+      <Stack.Screen name="payment" />
+      <Stack.Screen name="weather" />
+    </Stack>
+  );
+}
+
+export default function RootLayout() {
+  return (
+    <ErrorBoundary>
+      <AuthProvider>
+        <LanguageProvider>
+          <PlantProvider>
+            <StatusBar style="auto" />
+            <RootLayoutNav />
+          </PlantProvider>
+        </LanguageProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

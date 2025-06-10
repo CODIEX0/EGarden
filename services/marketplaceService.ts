@@ -1,13 +1,261 @@
 import { database } from '@/config/firebase';
-import { ref, push, get, update, remove, query, orderByChild, limitToLast, startAt, endAt } from 'firebase/database';
+import { ref, push, get, update, remove, query, orderByChild, limitToLast, startAt, endAt, onValue, off } from 'firebase/database';
 import { MarketListing, Order, PaymentMethod, ShippingOption } from '@/types';
 import { DatabaseService } from './databaseService';
 
+interface RealtimeSubscription {
+  unsubscribe: () => void;
+}
+
 export class MarketplaceService {
   private dbService: DatabaseService;
+  private subscriptions: Map<string, RealtimeSubscription> = new Map();
+  private listingsCache: Map<string, { data: MarketListing[]; timestamp: number }> = new Map();
+  private cacheExpiry = 5 * 60 * 1000; // 5 minutes
 
   constructor() {
     this.dbService = new DatabaseService();
+  }
+
+  // Real-time listing updates
+  subscribeToListings(
+    callback: (listings: MarketListing[]) => void,
+    filters?: any
+  ): () => void {
+    const subscriptionKey = `listings_${JSON.stringify(filters)}`;
+    
+    // Unsubscribe from existing subscription if any
+    this.unsubscribeFromListings(subscriptionKey);
+    
+    const listingsRef = ref(database, 'marketListings');
+    const unsubscribe = onValue(listingsRef, (snapshot) => {
+      if (snapshot.exists()) {
+        let listings = Object.entries(snapshot.val()).map(([id, data]: [string, any]) => ({
+          id,
+          ...data,
+          createdAt: new Date(data.createdAt),
+          updatedAt: new Date(data.updatedAt),
+          expiresAt: data.expiresAt ? new Date(data.expiresAt) : undefined,
+        })) as MarketListing[];
+
+        // Apply filters
+        if (filters) {
+          listings = this.applyFilters(listings, filters);
+        }
+
+        callback(listings);
+      } else {
+        callback([]);
+      }
+    });
+
+    this.subscriptions.set(subscriptionKey, { unsubscribe });
+    
+    return () => this.unsubscribeFromListings(subscriptionKey);
+  }
+
+  private unsubscribeFromListings(subscriptionKey: string) {
+    const subscription = this.subscriptions.get(subscriptionKey);
+    if (subscription) {
+      subscription.unsubscribe();
+      this.subscriptions.delete(subscriptionKey);
+    }
+  }
+
+  // Real-time order updates
+  subscribeToOrders(
+    userId: string,
+    type: 'buyer' | 'seller',
+    callback: (orders: Order[]) => void
+  ): () => void {
+    const subscriptionKey = `orders_${userId}_${type}`;
+    
+    this.unsubscribeFromOrders(subscriptionKey);
+    
+    const ordersRef = ref(database, 'orders');
+    const field = type === 'buyer' ? 'buyerId' : 'sellerId';
+    const ordersQuery = query(ordersRef, orderByChild(field), startAt(userId), endAt(userId));
+    
+    const unsubscribe = onValue(ordersQuery, (snapshot) => {
+      if (snapshot.exists()) {
+        const orders = Object.entries(snapshot.val()).map(([id, data]: [string, any]) => ({
+          id,
+          ...data,
+          createdAt: new Date(data.createdAt),
+          updatedAt: new Date(data.updatedAt),
+          estimatedDelivery: data.estimatedDelivery ? new Date(data.estimatedDelivery) : undefined,
+        })) as Order[];
+        
+        callback(orders);
+      } else {
+        callback([]);
+      }
+    });
+
+    this.subscriptions.set(subscriptionKey, { unsubscribe });
+    
+    return () => this.unsubscribeFromOrders(subscriptionKey);
+  }
+
+  private unsubscribeFromOrders(subscriptionKey: string) {
+    const subscription = this.subscriptions.get(subscriptionKey);
+    if (subscription) {
+      subscription.unsubscribe();
+      this.subscriptions.delete(subscriptionKey);
+    }
+  }
+
+  // Real-time order messages
+  subscribeToOrderMessages(
+    orderId: string,
+    callback: (messages: any[]) => void
+  ): () => void {
+    const subscriptionKey = `order_messages_${orderId}`;
+    
+    this.unsubscribeFromOrderMessages(subscriptionKey);
+    
+    const messagesRef = ref(database, `orders/${orderId}/messages`);
+    const unsubscribe = onValue(messagesRef, (snapshot) => {
+      if (snapshot.exists()) {
+        const messages = Object.values(snapshot.val()).map((msg: any) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp),
+        }));
+        callback(messages);
+      } else {
+        callback([]);
+      }
+    });
+
+    this.subscriptions.set(subscriptionKey, { unsubscribe });
+    
+    return () => this.unsubscribeFromOrderMessages(subscriptionKey);
+  }
+
+  private unsubscribeFromOrderMessages(subscriptionKey: string) {
+    const subscription = this.subscriptions.get(subscriptionKey);
+    if (subscription) {
+      subscription.unsubscribe();
+      this.subscriptions.delete(subscriptionKey);
+    }
+  }
+
+  // Enhanced search with caching and debouncing
+  private searchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  
+  async searchListingsDebounced(
+    searchTerm: string,
+    filters?: any,
+    callback?: (listings: MarketListing[]) => void,
+    debounceMs: number = 300
+  ): Promise<MarketListing[]> {
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+    }
+
+    return new Promise((resolve) => {
+      this.searchDebounceTimer = setTimeout(async () => {
+        const results = await this.searchListings(searchTerm, filters);
+        if (callback) callback(results);
+        resolve(results);
+      }, debounceMs);
+    });
+  }
+
+  // Performance optimized listing fetch with caching
+  async getListingsCached(filters?: any, limit: number = 20): Promise<MarketListing[]> {
+    const cacheKey = `listings_${JSON.stringify(filters)}_${limit}`;
+    const cached = this.listingsCache.get(cacheKey);
+    
+    if (cached && Date.now() - cached.timestamp < this.cacheExpiry) {
+      return cached.data;
+    }
+
+    const listings = await this.getListings(filters, limit);
+    this.listingsCache.set(cacheKey, {
+      data: listings,
+      timestamp: Date.now(),
+    });
+
+    return listings;
+  }
+
+  // Bulk operations for performance
+  async bulkUpdateListings(updates: Array<{ id: string; data: Partial<MarketListing> }>): Promise<void> {
+    try {
+      const updatePromises = updates.map(({ id, data }) => 
+        this.updateListing(id, data)
+      );
+      await Promise.all(updatePromises);
+    } catch (error) {
+      console.error('Error bulk updating listings:', error);
+      throw error;
+    }
+  }
+
+  async bulkUpdateOrders(updates: Array<{ id: string; data: Partial<Order> }>): Promise<void> {
+    try {
+      const updatePromises = updates.map(({ id, data }) => 
+        this.updateOrder(id, data)
+      );
+      await Promise.all(updatePromises);
+    } catch (error) {
+      console.error('Error bulk updating orders:', error);
+      throw error;
+    }
+  }
+
+  // Helper method to apply filters
+  private applyFilters(listings: MarketListing[], filters: any): MarketListing[] {
+    let filtered = listings;
+
+    if (filters.category) {
+      filtered = filtered.filter(l => l.category === filters.category);
+    }
+    if (filters.location) {
+      filtered = filtered.filter(l => 
+        l.location.city.toLowerCase().includes(filters.location.toLowerCase()) ||
+        l.location.state.toLowerCase().includes(filters.location.toLowerCase())
+      );
+    }
+    if (filters.minPrice !== undefined) {
+      filtered = filtered.filter(l => l.price >= filters.minPrice);
+    }
+    if (filters.maxPrice !== undefined) {
+      filtered = filtered.filter(l => l.price <= filters.maxPrice);
+    }
+    if (filters.organic !== undefined) {
+      filtered = filtered.filter(l => l.organic === filters.organic);
+    }
+    if (filters.sellerId) {
+      filtered = filtered.filter(l => l.sellerId === filters.sellerId);
+    }
+    if (filters.search) {
+      const searchTerm = filters.search.toLowerCase();
+      filtered = filtered.filter(l => 
+        l.title.toLowerCase().includes(searchTerm) ||
+        l.description.toLowerCase().includes(searchTerm) ||
+        l.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+      );
+    }
+
+    return filtered
+      .filter(l => l.status === 'active' && (!l.expiresAt || new Date(l.expiresAt) > new Date()))
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  }
+
+  // Cleanup method to unsubscribe from all real-time listeners
+  cleanup(): void {
+    this.subscriptions.forEach((subscription) => {
+      subscription.unsubscribe();
+    });
+    this.subscriptions.clear();
+    this.listingsCache.clear();
+    
+    if (this.searchDebounceTimer) {
+      clearTimeout(this.searchDebounceTimer);
+      this.searchDebounceTimer = null;
+    }
   }
 
   // Marketplace Listings
@@ -166,6 +414,29 @@ export class MarketplaceService {
     } catch (error) {
       console.error('Error fetching orders:', error);
       return [];
+    }
+  }
+
+  async getOrder(orderId: string): Promise<Order | null> {
+    try {
+      const order = await this.dbService.getById('orders', orderId) as Order;
+      return order || null;
+    } catch (error) {
+      console.error('Error fetching order:', error);
+      return null;
+    }
+  }
+
+  async updateOrder(orderId: string, updates: Partial<Order>): Promise<void> {
+    try {
+      const updateData = {
+        ...updates,
+        updatedAt: new Date(),
+      };
+      await this.dbService.update('orders', orderId, updateData);
+    } catch (error) {
+      console.error('Error updating order:', error);
+      throw error;
     }
   }
 
