@@ -165,78 +165,349 @@ class NotificationService {
     }
   }
 
-  // Plant care specific notifications
-  async scheduleWateringReminder(plant: any): Promise<string | null> {
-    const nextWateringDate = new Date();
-    if (plant.lastWatered) {
-      nextWateringDate.setTime(plant.lastWatered.getTime() + (plant.wateringFrequency * 24 * 60 * 60 * 1000));
-    } else {
-      nextWateringDate.setTime(Date.now() + (plant.wateringFrequency * 24 * 60 * 60 * 1000));
-    }
+  // Smart Reminder System
+  async scheduleSmartReminders(plants: any[], userId: string): Promise<void> {
+    try {
+      // Cancel existing reminders for this user
+      await this.cancelUserReminders(userId);
 
-    const reminder: Reminder = {
-      id: `water-${plant.id}`,
-      userId: plant.userId,
-      plantId: plant.id,
-      type: 'watering',
-      title: `Water ${plant.commonName}`,
-      description: `Time to water your ${plant.commonName}! 💧`,
-      frequency: plant.wateringFrequency,
-      nextDue: nextWateringDate,
-      isActive: true,
-      dateCreated: new Date(),
-      notificationSettings: {
-        enabled: true,
-        sound: true,
-        vibration: true,
-        advanceNotice: 1,
-        repeatInterval: 60,
-      },
-    };
-
-    return await this.scheduleRecurringReminder(reminder);
-  }
-
-  async scheduleDiseaseAlert(plant: any, disease: any): Promise<void> {
-    const urgencyMessages = {
-      immediate: 'Immediate attention required! 🚨',
-      soon: 'Treatment needed soon 🔔',
-      monitor: 'Keep monitoring 👀',
-    };
-
-    await this.sendImmediateNotification(
-      `Disease detected in ${plant.commonName}`,
-      `${disease.name} - ${urgencyMessages[disease.treatmentUrgency as keyof typeof urgencyMessages]}`,
-      {
-        plantId: plant.id,
-        diseaseId: disease.id,
-        type: 'disease_alert',
+      for (const plant of plants) {
+        await this.scheduleWateringReminder(plant, userId);
+        await this.scheduleFertilizingReminder(plant, userId);
+        await this.scheduleHealthCheckReminder(plant, userId);
       }
-    );
+    } catch (error) {
+      console.error('Error scheduling smart reminders:', error);
+    }
   }
 
-  async scheduleHealthCheckReminder(plant: any): Promise<string | null> {
-    const reminder: Reminder = {
-      id: `health-${plant.id}`,
-      userId: plant.userId,
-      plantId: plant.id,
-      type: 'custom',
-      title: `Health check for ${plant.commonName}`,
-      description: `Time to check on your ${plant.commonName}'s health 🌿`,
-      frequency: 7, // Weekly health checks
-      nextDue: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      isActive: true,
-      dateCreated: new Date(),
-      notificationSettings: {
-        enabled: true,
-        sound: true,
-        vibration: true,
-        advanceNotice: 1,
-        repeatInterval: 60,
-      },
-    };
+  async scheduleWateringReminder(plant: any, userId: string): Promise<void> {
+    try {
+      const nextWateringDate = this.calculateNextWateringDate(plant);
+      if (!nextWateringDate) return;
 
-    return await this.scheduleRecurringReminder(reminder);
+      const identifier = `water_${plant.id}_${userId}`;
+      
+      await Notifications.scheduleNotificationAsync({
+        identifier,
+        content: {
+          title: '💧 Time to Water!',
+          body: `Your ${plant.commonName} needs watering`,
+          data: {
+            type: 'watering',
+            plantId: plant.id,
+            plantName: plant.commonName,
+            userId,
+          },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: nextWateringDate,
+        },
+      });
+
+      // Schedule advance notice (1 hour before)
+      const advanceNoticeDate = new Date(nextWateringDate.getTime() - 60 * 60 * 1000);
+      if (advanceNoticeDate > new Date()) {
+        await Notifications.scheduleNotificationAsync({
+          identifier: `water_advance_${plant.id}_${userId}`,
+          content: {
+            title: '🌱 Watering Reminder',
+            body: `Don't forget to water your ${plant.commonName} in 1 hour`,
+            data: {
+              type: 'watering_advance',
+              plantId: plant.id,
+              plantName: plant.commonName,
+              userId,
+            },
+          },
+          trigger: {
+            type: Notifications.SchedulableTriggerInputTypes.DATE,
+            date: advanceNoticeDate,
+          },
+        });
+      }
+    } catch (error) {
+      console.error('Error scheduling watering reminder:', error);
+    }
+  }
+
+  async scheduleFertilizingReminder(plant: any, userId: string): Promise<void> {
+    try {
+      const nextFertilizingDate = this.calculateNextFertilizingDate(plant);
+      if (!nextFertilizingDate) return;
+
+      const identifier = `fertilize_${plant.id}_${userId}`;
+      
+      await Notifications.scheduleNotificationAsync({
+        identifier,
+        content: {
+          title: '🌿 Fertilizing Time!',
+          body: `Your ${plant.commonName} could use some nutrients`,
+          data: {
+            type: 'fertilizing',
+            plantId: plant.id,
+            plantName: plant.commonName,
+            userId,
+          },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: nextFertilizingDate,
+        },
+      });
+    } catch (error) {
+      console.error('Error scheduling fertilizing reminder:', error);
+    }
+  }
+
+  async scheduleHealthCheckReminder(plant: any, userId: string): Promise<void> {
+    try {
+      // Schedule weekly health check reminders
+      const nextHealthCheck = new Date();
+      nextHealthCheck.setDate(nextHealthCheck.getDate() + 7);
+      nextHealthCheck.setHours(9, 0, 0, 0); // 9 AM
+
+      const identifier = `health_${plant.id}_${userId}`;
+      
+      await Notifications.scheduleNotificationAsync({
+        identifier,
+        content: {
+          title: '🔍 Plant Health Check',
+          body: `Time to check on your ${plant.commonName}`,
+          data: {
+            type: 'health_check',
+            plantId: plant.id,
+            plantName: plant.commonName,
+            userId,
+          },
+        },
+        trigger: {
+          type: Notifications.SchedulableTriggerInputTypes.DATE,
+          date: nextHealthCheck,
+        },
+      });
+    } catch (error) {
+      console.error('Error scheduling health check reminder:', error);
+    }
+  }
+
+  private calculateNextWateringDate(plant: any): Date | null {
+    if (!plant.wateringFrequency) return null;
+
+    const lastWatered = plant.lastWatered ? new Date(plant.lastWatered) : new Date(plant.dateAdded);
+    const nextWatering = new Date(lastWatered);
+    nextWatering.setDate(nextWatering.getDate() + plant.wateringFrequency);
+    
+    // If the date is in the past, set it to tomorrow at 9 AM
+    if (nextWatering < new Date()) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(9, 0, 0, 0);
+      return tomorrow;
+    }
+    
+    // Set time to 9 AM
+    nextWatering.setHours(9, 0, 0, 0);
+    return nextWatering;
+  }
+
+  private calculateNextFertilizingDate(plant: any): Date | null {
+    const lastFertilized = plant.lastFertilized ? new Date(plant.lastFertilized) : new Date(plant.dateAdded);
+    const fertilizingInterval = this.getFertilizingInterval(plant.plantType);
+    
+    const nextFertilizing = new Date(lastFertilized);
+    nextFertilizing.setDate(nextFertilizing.getDate() + fertilizingInterval);
+    
+    // If the date is in the past, set it to next week
+    if (nextFertilizing < new Date()) {
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      nextWeek.setHours(10, 0, 0, 0);
+      return nextWeek;
+    }
+    
+    nextFertilizing.setHours(10, 0, 0, 0);
+    return nextFertilizing;
+  }
+
+  private getFertilizingInterval(plantType: string): number {
+    const intervals: Record<string, number> = {
+      'vegetable': 14, // Every 2 weeks
+      'flower': 21,   // Every 3 weeks
+      'herb': 28,     // Every 4 weeks
+      'tree': 42,     // Every 6 weeks
+      'other': 21,    // Default 3 weeks
+    };
+    return intervals[plantType] || 21;
+  }
+
+  async cancelUserReminders(userId: string): Promise<void> {
+    try {
+      const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
+      const userNotifications = scheduledNotifications.filter(notification => 
+        notification.content.data?.userId === userId
+      );
+
+      for (const notification of userNotifications) {
+        await Notifications.cancelScheduledNotificationAsync(notification.identifier);
+      }
+    } catch (error) {
+      console.error('Error canceling user reminders:', error);
+    }
+  }
+
+  // Disease Alert System
+  async sendDiseaseAlert(plant: any, disease: any, userId: string): Promise<void> {
+    try {
+      const severity = disease.severity || 'medium';
+      const urgencyLevel = this.getUrgencyLevel(severity);
+      
+      await Notifications.scheduleNotificationAsync({
+        identifier: `disease_${plant.id}_${Date.now()}`,
+        content: {
+          title: `🚨 ${urgencyLevel.emoji} Disease Alert!`,
+          body: `${disease.name} detected on your ${plant.commonName}`,
+          data: {
+            type: 'disease_alert',
+            plantId: plant.id,
+            plantName: plant.commonName,
+            diseaseName: disease.name,
+            severity,
+            userId,
+          },
+          sound: urgencyLevel.sound,
+        },
+        trigger: null, // Send immediately
+      });
+    } catch (error) {
+      console.error('Error sending disease alert:', error);
+    }
+  }
+
+  private getUrgencyLevel(severity: string) {
+    switch (severity) {
+      case 'high':
+        return {
+          emoji: '🔴',
+          sound: 'default',
+          priority: Notifications.AndroidImportance.HIGH
+        };
+      case 'medium':
+        return {
+          emoji: '🟡',
+          sound: 'default',
+          priority: Notifications.AndroidImportance.DEFAULT
+        };
+      default:
+        return {
+          emoji: '🟢',
+          sound: 'default',
+          priority: Notifications.AndroidImportance.LOW
+        };
+    }
+  }
+
+  // Community Notifications
+  async sendCommunityNotification(type: 'new_post' | 'comment_reply' | 'helpful_vote', data: any, userId: string): Promise<void> {
+    try {
+      const notificationContent = this.getCommunityNotificationContent(type, data);
+      
+      await Notifications.scheduleNotificationAsync({
+        identifier: `community_${type}_${Date.now()}`,
+        content: {
+          ...notificationContent,
+          data: {
+            type: `community_${type}`,
+            ...data,
+            userId,
+          },
+        },
+        trigger: null,
+      });
+    } catch (error) {
+      console.error('Error sending community notification:', error);
+    }
+  }
+
+  private getCommunityNotificationContent(type: string, data: any) {
+    switch (type) {
+      case 'new_post':
+        return {
+          title: '📝 New Community Post',
+          body: `Check out the latest post in ${data.category}`,
+          sound: 'default',
+        };
+      case 'comment_reply':
+        return {
+          title: '💬 New Reply',
+          body: `Someone replied to your comment`,
+          sound: 'default',
+        };
+      case 'helpful_vote':
+        return {
+          title: '👍 Helpful Vote',
+          body: `Your post was marked as helpful!`,
+          sound: 'default',
+        };
+      default:
+        return {
+          title: '🌱 eGarden Update',
+          body: 'Something new happened in the community',
+          sound: 'default',
+        };
+    }
+  }
+
+  // Marketplace Notifications
+  async sendMarketplaceNotification(type: 'new_order' | 'order_update' | 'payment_received', data: any, userId: string): Promise<void> {
+    try {
+      const notificationContent = this.getMarketplaceNotificationContent(type, data);
+      
+      await Notifications.scheduleNotificationAsync({
+        identifier: `marketplace_${type}_${Date.now()}`,
+        content: {
+          ...notificationContent,
+          data: {
+            type: `marketplace_${type}`,
+            ...data,
+            userId,
+          },
+        },
+        trigger: null,
+      });
+    } catch (error) {
+      console.error('Error sending marketplace notification:', error);
+    }
+  }
+
+  private getMarketplaceNotificationContent(type: string, data: any) {
+    switch (type) {
+      case 'new_order':
+        return {
+          title: '📦 New Order!',
+          body: `You have a new order for ${data.itemName}`,
+          sound: 'default',
+        };
+      case 'order_update':
+        return {
+          title: '📋 Order Update',
+          body: `Your order status has been updated to ${data.status}`,
+          sound: 'default',
+        };
+      case 'payment_received':
+        return {
+          title: '💰 Payment Received',
+          body: `Payment of ${data.amount} ${data.currency} received`,
+          sound: 'default',
+        };
+      default:
+        return {
+          title: '🛒 Marketplace Update',
+          body: 'Something new happened with your orders',
+          sound: 'default',
+        };
+    }
   }
 
   // Badge management

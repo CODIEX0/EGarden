@@ -234,6 +234,144 @@ class AIService {
     };
   }
 
+  // Comprehensive Disease Diagnosis
+  async diagnosePlantDisease(imageUri: string, plantType?: string): Promise<{
+    diseases: Disease[];
+    healthScore: number;
+    analysisConfidence: number;
+    recommendations: string[];
+    preventionTips: string[];
+    severity: 'low' | 'medium' | 'high' | 'critical';
+  }> {
+    await this.initialize();
+    
+    try {
+      const base64Image = await this.convertImageToBase64(imageUri);
+      
+      // Get diseases from the existing detection method
+      const diseases = await this.detectDiseases(imageUri, plantType);
+      
+      // Calculate overall health score
+      const healthScore = this.calculateHealthScore(diseases);
+      
+      // Generate comprehensive analysis
+      const analysisConfidence = diseases.length > 0 ? 
+        Math.max(...diseases.map(d => d.confidence)) / 100 : 0.85;
+      
+      const recommendations = this.generateTreatmentRecommendations(diseases, plantType);
+      const preventionTips = this.generatePreventionTips(diseases, plantType);
+      const severity = this.calculateOverallSeverity(diseases);
+      
+      return {
+        diseases,
+        healthScore,
+        analysisConfidence,
+        recommendations,
+        preventionTips,
+        severity
+      };
+    } catch (error) {
+      console.error('Disease diagnosis failed:', error);
+      // Return fallback diagnosis
+      return {
+        diseases: [],
+        healthScore: 85,
+        analysisConfidence: 0.6,
+        recommendations: [
+          'Monitor plant closely for changes',
+          'Ensure proper watering schedule',
+          'Check for adequate lighting'
+        ],
+        preventionTips: [
+          'Water at the base of the plant',
+          'Ensure good air circulation',
+          'Remove dead or yellowing leaves promptly'
+        ],
+        severity: 'low'
+      };
+    }
+  }
+
+  private calculateHealthScore(diseases: Disease[]): number {
+    if (diseases.length === 0) return 95;
+    
+    const severityWeights = { low: 5, medium: 15, high: 30 };
+    const totalDeduction = diseases.reduce((sum, disease) => {
+      const weight = severityWeights[disease.severity] || 10;
+      const confidenceMultiplier = disease.confidence / 100;
+      return sum + (weight * confidenceMultiplier);
+    }, 0);
+    
+    return Math.max(20, 100 - totalDeduction);
+  }
+
+  private generateTreatmentRecommendations(diseases: Disease[], plantType?: string): string[] {
+    const recommendations: string[] = [];
+    
+    if (diseases.length === 0) {
+      return [
+        'Continue current care routine',
+        'Monitor for any changes in appearance',
+        'Maintain consistent watering schedule'
+      ];
+    }
+    
+    diseases.forEach(disease => {
+      if (disease.severity === 'high') {
+        recommendations.push(`Immediate attention required for ${disease.name}`);
+        recommendations.push(...disease.controlMeasures.slice(0, 2));
+      } else if (disease.severity === 'medium') {
+        recommendations.push(`Address ${disease.name} within a few days`);
+        recommendations.push(disease.controlMeasures[0]);
+      }
+    });
+    
+    // Add general recommendations based on plant type
+    if (plantType === 'vegetable') {
+      recommendations.push('Consider organic treatment options for edible plants');
+    } else if (plantType === 'flower') {
+      recommendations.push('Focus on preserving blooming capacity');
+    }
+    
+    return [...new Set(recommendations)]; // Remove duplicates
+  }
+
+  private generatePreventionTips(diseases: Disease[], plantType?: string): string[] {
+    const tips = new Set<string>();
+    
+    diseases.forEach(disease => {
+      disease.prevention.forEach(tip => tips.add(tip));
+    });
+    
+    // Add general prevention tips
+    tips.add('Water early morning to allow leaves to dry');
+    tips.add('Ensure adequate spacing between plants');
+    tips.add('Use clean gardening tools');
+    tips.add('Remove fallen leaves and debris regularly');
+    
+    if (plantType === 'herb') {
+      tips.add('Harvest regularly to promote healthy growth');
+    }
+    
+    return Array.from(tips).slice(0, 8); // Limit to 8 tips
+  }
+
+  private calculateOverallSeverity(diseases: Disease[]): 'low' | 'medium' | 'high' | 'critical' {
+    if (diseases.length === 0) return 'low';
+    
+    const hasHigh = diseases.some(d => d.severity === 'high');
+    const hasMedium = diseases.some(d => d.severity === 'medium');
+    const highConfidenceDiseases = diseases.filter(d => d.confidence > 80);
+    
+    if (hasHigh && highConfidenceDiseases.length > 0) {
+      return diseases.length > 2 ? 'critical' : 'high';
+    } else if (hasMedium || diseases.length > 2) {
+      return 'medium';
+    }
+    
+    return 'low';
+  }
+
   // Helper methods
   private generateCareInstructions(species: any): any {
     return {
@@ -472,6 +610,59 @@ class AIService {
         'Do you need advice about plant diseases?',
       ],
     };
+  }
+
+  private async convertImageToBase64(imageUri: string): Promise<string> {
+    try {
+      if (Platform.OS === 'web') {
+        // For web, convert blob to base64
+        const response = await fetch(imageUri);
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      } else {
+        // For mobile, use expo-file-system
+        const { FileSystem } = require('expo-file-system');
+        if (imageUri.startsWith('data:')) {
+          return imageUri; // Already base64
+        }
+        return await FileSystem.readAsStringAsync(imageUri, {
+          encoding: FileSystem.EncodingType.Base64,
+        });
+      }
+    } catch (error) {
+      console.error('Error converting image to base64:', error);
+      throw new Error('Failed to process image');
+    }
+  }
+
+  private validateImageFormat(imageUri: string): boolean {
+    const supportedFormats = AI_CONFIG.SUPPORTED_FORMATS;
+    return supportedFormats.some(format => 
+      imageUri.toLowerCase().includes(format.split('/')[1])
+    );
+  }
+
+  private async resizeImageIfNeeded(imageUri: string): Promise<string> {
+    try {
+      // Basic implementation - in production, you'd use a proper image resizing library
+      if (Platform.OS !== 'web') {
+        const { FileSystem } = require('expo-file-system');
+        const info = await FileSystem.getInfoAsync(imageUri);
+        if (info.exists && info.size && info.size > AI_CONFIG.MAX_IMAGE_SIZE) {
+          console.warn('Image too large, resizing needed');
+          // In production, implement actual resizing with expo-image-manipulator
+        }
+      }
+      return imageUri;
+    } catch (error) {
+      console.warn('Error checking image size:', error);
+      return imageUri;
+    }
   }
 
   private daysSince(date: Date): number {
