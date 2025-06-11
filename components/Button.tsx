@@ -2,7 +2,7 @@ import React from 'react';
 import { Pressable, Text, StyleSheet, ViewStyle, TextStyle, ActivityIndicator } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
 import { Colors } from '@/constants/Colors';
-import { Video as LucideIcon } from 'lucide-react-native';
+import { LucideIcon } from 'lucide-react-native';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
@@ -13,7 +13,7 @@ interface ButtonProps {
   size?: 'small' | 'medium' | 'large';
   loading?: boolean;
   disabled?: boolean;
-  icon?: LucideIcon;
+  icon?: typeof LucideIcon;
   style?: ViewStyle;
   textStyle?: TextStyle;
 }

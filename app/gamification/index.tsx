@@ -241,7 +241,7 @@ export default function GamificationScreen() {
           style={[styles.tab, selectedTab === 'goals' && styles.activeTab]}
           onPress={() => setSelectedTab('goals')}
         >
-          <Ionicons name="target-outline" size={20} color={selectedTab === 'goals' ? 'white' : Colors.gray[600]} />
+          <Ionicons name="flag-outline" size={20} color={selectedTab === 'goals' ? 'white' : Colors.gray[600]} />
           <Text style={[styles.tabText, selectedTab === 'goals' && styles.activeTabText]}>
             Goals
           </Text>

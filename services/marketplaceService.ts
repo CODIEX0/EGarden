@@ -1,21 +1,17 @@
 import { database } from '@/config/firebase';
 import { ref, push, get, update, remove, query, orderByChild, limitToLast, startAt, endAt, onValue, off } from 'firebase/database';
 import { MarketListing, Order, PaymentMethod, ShippingOption } from '@/types';
-import { DatabaseService } from './databaseService';
+import { databaseService } from './databaseService';
 
 interface RealtimeSubscription {
   unsubscribe: () => void;
 }
 
 export class MarketplaceService {
-  private dbService: DatabaseService;
+  private dbService = databaseService;
   private subscriptions: Map<string, RealtimeSubscription> = new Map();
   private listingsCache: Map<string, { data: MarketListing[]; timestamp: number }> = new Map();
   private cacheExpiry = 5 * 60 * 1000; // 5 minutes
-
-  constructor() {
-    this.dbService = new DatabaseService();
-  }
 
   // Real-time listing updates
   subscribeToListings(

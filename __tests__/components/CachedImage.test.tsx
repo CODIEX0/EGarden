@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, waitFor } from '@testing-library/react-native';
-import { CachedImage } from '@/components/CachedImage';
+import CachedImage from '@/components/CachedImage';
 
 // Mock the image cache service
 jest.mock('@/services/imageCacheService', () => ({
@@ -22,8 +22,8 @@ describe('CachedImage', () => {
 
     const { getByTestId } = render(
       <CachedImage
-        source={{ uri: 'https://example.com/image.jpg' }}
-        style={{ width: 100, height: 100 }}
+        uri="https://example.com/image.jpg"
+        style={{ width: 100, height: 100 
         testID="cached-image"
       />
     );
@@ -43,8 +43,8 @@ describe('CachedImage', () => {
 
     const { getByTestId } = render(
       <CachedImage
-        source={{ uri: 'https://example.com/image.jpg' }}
-        style={{ width: 100, height: 100 }}
+        uri= 'https://example.com/image.jpg' 
+        style={{ width: 100, height: 100 
         testID="cached-image"
       />
     );
@@ -58,8 +58,8 @@ describe('CachedImage', () => {
 
     const { getByTestId } = render(
       <CachedImage
-        source={{ uri: 'https://example.com/image.jpg' }}
-        style={{ width: 100, height: 100 }}
+        uri= 'https://example.com/image.jpg' 
+        style={{ width: 100, height: 100 
         testID="cached-image"
       />
     );
@@ -75,8 +75,8 @@ describe('CachedImage', () => {
 
     const { getByTestId } = render(
       <CachedImage
-        source={{ uri: 'https://example.com/image.jpg' }}
-        style={{ width: 100, height: 100 }}
+        uri= 'https://example.com/image.jpg' 
+        style={{ width: 100, height: 100 
         fallbackBackgroundColor="#ff0000"
         fallbackIconColor="#00ff00"
         testID="cached-image"
@@ -96,8 +96,8 @@ describe('CachedImage', () => {
   it('should handle local images without caching', async () => {
     const { getByTestId } = render(
       <CachedImage
-        source={{ uri: 'file://local-image.jpg' }}
-        style={{ width: 100, height: 100 }}
+        uri= 'file://local-image.jpg' 
+        style={{ width: 100, height: 100 
         testID="cached-image"
       />
     );
@@ -114,8 +114,8 @@ describe('CachedImage', () => {
   it('should handle missing source gracefully', async () => {
     const { getByTestId } = render(
       <CachedImage
-        source={{ uri: '' }}
-        style={{ width: 100, height: 100 }}
+        uri= '' 
+        style={{ width: 100, height: 100 
         testID="cached-image"
       />
     );

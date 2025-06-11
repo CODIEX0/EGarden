@@ -383,6 +383,23 @@ class DatabaseService {
     this.syncQueue = [];
     await this.saveSyncQueue();
   }
+
+  // Convenience methods for backward compatibility
+  async getAll(collection: string): Promise<any[]> {
+    return await this.read(collection);
+  }
+
+  async getById(collection: string, id: string): Promise<any> {
+    return await this.read(collection, id);
+  }
+
+  async getDocument(path: string): Promise<any> {
+    const parts = path.split('/');
+    if (parts.length === 2) {
+      return await this.getById(parts[0], parts[1]);
+    }
+    return null;
+  }
 }
 
 export const databaseService = new DatabaseService();

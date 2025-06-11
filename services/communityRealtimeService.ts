@@ -453,22 +453,29 @@ export class CommunityRealtimeService {
     return filtered;
   }
 
-  private async createNotification(userId: string, notification: Partial<Notification>): Promise<void> {
+  // Create notification method
+  async createNotification(userId: string, notificationData: Omit<Notification, 'id' | 'createdAt' | 'userId'>): Promise<void> {
     try {
-      const notificationRef = ref(database, `userNotifications/${userId}`);
-      const notificationId = push(notificationRef).key!;
-      
-      const fullNotification = {
-        id: notificationId,
-        ...notification,
+      const notification = {
+        ...notificationData,
+        userId,
+        createdAt: new Date().toISOString(),
         read: false,
-        createdAt: serverTimestamp(),
       };
 
-      await update(ref(database, `userNotifications/${userId}/${notificationId}`), fullNotification);
+      const notificationsRef = ref(database, `notifications/${userId}`);
+      await push(notificationsRef, notification);
+
+      // Trigger notification callbacks
+      this.notificationCallbacks.forEach(callback => {
+        callback({
+          id: '', // Will be set by Firebase
+          ...notification,
+          createdAt: new Date(notification.createdAt),
+        } as Notification);
+      });
     } catch (error) {
       console.error('Error creating notification:', error);
-      throw error;
     }
   }
 

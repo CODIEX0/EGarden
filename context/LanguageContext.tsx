@@ -72,7 +72,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       lang => lang.code === primaryLocale.languageCode
     );
     
-    return supportedLanguage ? primaryLocale.languageCode : 'en';
+    return supportedLanguage ? primaryLocale.languageCode || 'en' : 'en';
   };
 
   const changeLanguage = async (languageCode: string) => {

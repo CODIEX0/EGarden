@@ -1,14 +1,10 @@
 import { database } from '@/config/firebase';
 import { ref, push, get, update, remove, query, orderByChild, limitToLast, startAt, endAt } from 'firebase/database';
 import { CommunityPost, Comment, DonationItem, Review } from '@/types';
-import { DatabaseService } from './databaseService';
+import { databaseService } from './databaseService';
 
 export class CommunityService {
-  private dbService: DatabaseService;
-
-  constructor() {
-    this.dbService = new DatabaseService();
-  }
+  private dbService = databaseService;
 
   // Community Posts
   async createPost(postData: Omit<CommunityPost, 'id' | 'createdAt' | 'updatedAt'>): Promise<string> {

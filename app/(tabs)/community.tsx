@@ -558,10 +558,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
   },
-  createFirstButton: {
+    createFirstButton: {
     minWidth: 160,
   },
-});
   content: {
     flex: 1,
     padding: 20,

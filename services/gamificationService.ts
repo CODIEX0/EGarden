@@ -1,14 +1,10 @@
 import { database } from '@/config/firebase';
 import { ref, get, update, push } from 'firebase/database';
 import { Badge, Achievement, UserProgress, DailyStreak, WeeklyGoal } from '@/types';
-import { DatabaseService } from './databaseService';
+import { databaseService } from './databaseService';
 
 export class GamificationService {
-  private dbService: DatabaseService;
-
-  constructor() {
-    this.dbService = new DatabaseService();
-  }
+  private dbService = databaseService;
 
   // Badge System
   async checkAndAwardBadges(userId: string, action: string, data?: any): Promise<Badge[]> {
@@ -332,26 +328,47 @@ export class GamificationService {
       {
         id: 'water_plants',
         type: 'water_plants',
+        title: 'Plant Caretaker',
+        description: 'Water your plants 10 times this week',
+        icon: 'water-outline',
         target: 10,
         current: 0,
+        currentProgress: 0,
+        targetValue: 10,
         reward: 20,
         deadline: endOfWeek,
+        completed: false,
+        unit: 'times',
       },
       {
         id: 'add_plants',
         type: 'add_plants',
+        title: 'Garden Expander',
+        description: 'Add 2 new plants to your garden',
+        icon: 'add-circle-outline',
         target: 2,
         current: 0,
+        currentProgress: 0,
+        targetValue: 2,
         reward: 30,
         deadline: endOfWeek,
+        completed: false,
+        unit: 'plants',
       },
       {
         id: 'community_engagement',
         type: 'community_engagement',
+        title: 'Community Helper',
+        description: 'Engage with the community 5 times',
+        icon: 'people-outline',
         target: 5,
         current: 0,
+        currentProgress: 0,
+        targetValue: 5,
         reward: 25,
         deadline: endOfWeek,
+        completed: false,
+        unit: 'interactions',
       },
     ];
   }
@@ -403,6 +420,7 @@ export class GamificationService {
       {
         id: 'first_plant',
         name: 'First Sprout',
+        title: 'First Sprout',
         description: 'Add your first plant to the garden',
         icon: '🌱',
         category: 'planting',
@@ -411,10 +429,13 @@ export class GamificationService {
         requirements: [
           { type: 'plant_count', target: 1, current: 0 }
         ],
+        currentProgress: 0,
+        targetValue: 1,
       },
       {
         id: 'green_thumb',
         name: 'Green Thumb',
+        title: 'Green Thumb',
         description: 'Successfully manage 10 plants',
         icon: '👍',
         category: 'planting',
@@ -423,10 +444,13 @@ export class GamificationService {
         requirements: [
           { type: 'plant_count', target: 10, current: 0 }
         ],
+        currentProgress: 0,
+        targetValue: 10,
       },
       {
         id: 'disease_detective',
         name: 'Disease Detective',
+        title: 'Disease Detective',
         description: 'Identify 5 plant diseases',
         icon: '🔍',
         category: 'learning',
@@ -435,10 +459,13 @@ export class GamificationService {
         requirements: [
           { type: 'disease_identified', target: 5, current: 0 }
         ],
+        currentProgress: 0,
+        targetValue: 5,
       },
       {
         id: 'community_helper',
         name: 'Community Helper',
+        title: 'Community Helper',
         description: 'Receive 20 helpful votes',
         icon: '🤝',
         category: 'community',
@@ -447,10 +474,13 @@ export class GamificationService {
         requirements: [
           { type: 'helpful_votes', target: 20, current: 0 }
         ],
+        currentProgress: 0,
+        targetValue: 20,
       },
       {
         id: 'streak_master',
         name: 'Streak Master',
+        title: 'Streak Master',
         description: 'Maintain a 30-day care streak',
         icon: '🔥',
         category: 'care',
@@ -459,6 +489,8 @@ export class GamificationService {
         requirements: [
           { type: 'streak_days', target: 30, current: 0 }
         ],
+        currentProgress: 0,
+        targetValue: 30,
       },
     ];
   }
@@ -555,6 +587,165 @@ export class GamificationService {
       
     } catch (error) {
       console.error('Error tracking activity:', error);
+    }
+  }
+
+  // Missing method implementations
+  async getUserBadges(userId: string): Promise<Badge[]> {
+    try {
+      const userProgress = await this.getUserProgress(userId);
+      const badges: Badge[] = [];
+      
+      for (const badgeId of userProgress.achievements) {
+        const badge = await this.getBadgeById(badgeId);
+        if (badge) {
+          badges.push(badge);
+        }
+      }
+      
+      return badges;
+    } catch (error) {
+      console.error('Error getting user badges:', error);
+      return [];
+    }
+  }
+
+  async getUserAchievements(userId: string): Promise<Achievement[]> {
+    try {
+      const userProgress = await this.getUserProgress(userId);
+      const achievements: Achievement[] = [];
+      
+      // Generate sample achievements based on user progress
+      achievements.push({
+        id: 'plant_master',
+        name: 'Plant Master',
+        title: 'Plant Master',
+        description: 'Add 10 plants to your garden',
+        icon: '🌿',
+        category: 'planting',
+        points: 100,
+        rarity: 'common',
+        requirements: [],
+        currentProgress: userProgress.plantsAdded,
+        targetValue: 10,
+        unlockedAt: userProgress.plantsAdded >= 10 ? new Date() : undefined,
+      });
+
+      achievements.push({
+        id: 'community_helper',
+        name: 'Community Helper',
+        title: 'Community Helper',
+        description: 'Help other gardeners with advice',
+        icon: '🤝',
+        category: 'community',
+        points: 50,
+        rarity: 'common',
+        requirements: [],
+        currentProgress: userProgress.helpfulVotes,
+        targetValue: 5,
+        unlockedAt: userProgress.helpfulVotes >= 5 ? new Date() : undefined,
+      });
+
+      return achievements;
+    } catch (error) {
+      console.error('Error getting user achievements:', error);
+      return [];
+    }
+  }
+
+  async getWeeklyGoals(userId: string): Promise<WeeklyGoal[]> {
+    try {
+      const userProgress = await this.getUserProgress(userId);
+      const currentDate = new Date();
+      const weekEnd = new Date(currentDate);
+      weekEnd.setDate(currentDate.getDate() + (7 - currentDate.getDay()));
+      
+      const goals: WeeklyGoal[] = [
+        {
+          id: 'water_plants_weekly',
+          type: 'water_plants',
+          title: 'Watering Champion',
+          description: 'Water your plants 7 times this week',
+          icon: '💧',
+          target: 7,
+          current: Math.min(userProgress.plantsAdded * 2, 7), // Estimate based on plants
+          currentProgress: Math.min(userProgress.plantsAdded * 2, 7),
+          targetValue: 7,
+          reward: 50,
+          deadline: weekEnd,
+          completed: userProgress.plantsAdded * 2 >= 7,
+          unit: 'times',
+        },
+        {
+          id: 'community_engagement',
+          type: 'community_engagement',
+          title: 'Social Gardener',
+          description: 'Create 3 posts or comments this week',
+          icon: '💬',
+          target: 3,
+          current: userProgress.postsCreated,
+          currentProgress: userProgress.postsCreated,
+          targetValue: 3,
+          reward: 30,
+          deadline: weekEnd,
+          completed: userProgress.postsCreated >= 3,
+          unit: 'posts',
+        },
+      ];
+      
+      return goals;
+    } catch (error) {
+      console.error('Error getting weekly goals:', error);
+      return [];
+    }
+  }
+
+  async getDailyStreak(userId: string): Promise<DailyStreak> {
+    try {
+      const userProgress = await this.getUserProgress(userId);
+      
+      return {
+        userId,
+        currentStreak: userProgress.dayStreak,
+        longestStreak: userProgress.dayStreak, // Simplified for now
+        lastActivity: userProgress.lastActive,
+        streakType: 'plant_care',
+      };
+    } catch (error) {
+      console.error('Error getting daily streak:', error);
+      return {
+        userId,
+        currentStreak: 0,
+        longestStreak: 0,
+        lastActivity: new Date(),
+        streakType: 'plant_care',
+      };
+    }
+  }
+
+  async addPoints(userId: string, points: number, reason?: string): Promise<void> {
+    try {
+      const userProgress = await this.getUserProgress(userId);
+      userProgress.totalPoints += points;
+      
+      await this.dbService.update(`userProgress/${userId}`, {
+        totalPoints: userProgress.totalPoints,
+        lastActive: new Date().toISOString(),
+      });
+
+      console.log(`Added ${points} points to user ${userId} for: ${reason || 'Unknown reason'}`);
+    } catch (error) {
+      console.error('Error adding points:', error);
+    }
+  }
+
+  private async getBadgeById(badgeId: string): Promise<Badge | null> {
+    try {
+      const badge = await this.dbService.getDocument(`badges/${badgeId}`);
+      return badge as Badge || null;
+    } catch (error) {
+      console.error('Error getting badge by ID:', error);
+      return null;
     }
   }
 }

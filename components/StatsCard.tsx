@@ -1,13 +1,13 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { Video as LucideIcon } from 'lucide-react-native';
+import { LucideIcon } from 'lucide-react-native';
 
 interface StatsCardProps {
   title: string;
   value: number;
   subtitle?: string;
-  icon: LucideIcon;
+  icon: typeof LucideIcon;
   color: string;
 }
 

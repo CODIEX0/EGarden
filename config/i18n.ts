@@ -58,7 +58,7 @@ i18n
   .use(initReactI18next)
   .init({
     resources,
-    lng: getDeviceLanguage(),
+    lng: getDeviceLanguage() || 'en',
     fallbackLng: 'en',
     debug: __DEV__,
     

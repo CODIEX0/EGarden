@@ -50,7 +50,7 @@ export interface Plant {
   lastFertilized?: Date;
   careInstructions?: string;
   aiAnalysis?: AIAnalysis;
-  location?: PlantLocation;
+  location?: PlantLocation | string; // Allow both detailed location and simple string
 }
 
 export interface AIAnalysis {
@@ -120,6 +120,7 @@ export interface NotificationSettings {
 export interface CommunityPost {
   id: string;
   userId: string;
+  authorId: string; // Alias for userId for backward compatibility
   userProfile: {
     name: string;
     profilePicture?: string;
@@ -359,6 +360,7 @@ export interface TreatmentRecommendation {
 export interface Achievement {
   id: string;
   name: string;
+  title: string; // Display title
   description: string;
   icon: string;
   category: 'planting' | 'care' | 'community' | 'learning' | 'trading';
@@ -366,6 +368,8 @@ export interface Achievement {
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
   requirements: AchievementRequirement[];
   unlockedAt?: Date;
+  currentProgress: number;
+  targetValue: number;
 }
 
 export interface AchievementRequirement {
@@ -398,47 +402,48 @@ export interface UserProgress {
 export interface WeeklyGoal {
   id: string;
   type: 'water_plants' | 'add_plants' | 'community_engagement' | 'disease_identification';
+  title: string;
+  description: string;
+  icon: string;
   target: number;
   current: number;
+  currentProgress: number; // Alias for current
+  targetValue: number; // Alias for target
   reward: number; // points
   deadline: Date;
+  completed: boolean;
+  unit: string;
 }
 
 // Enhanced Notification System
-export interface PushNotification {
+export interface Notification {
   id: string;
   userId: string;
-  type: 'watering' | 'fertilizing' | 'disease_alert' | 'community' | 'market' | 'system';
+  type: 'like' | 'comment' | 'follow' | 'post' | 'system' | 'reminder';
   title: string;
   body: string;
+  message?: string; // Alternative to body for backward compatibility
   data?: any;
-  scheduled: Date;
-  sent: boolean;
-  opened: boolean;
-  actions?: NotificationAction[];
+  read: boolean;
+  createdAt: Date;
+  actionUrl?: string;
+  fromUserId?: string; // User who triggered the notification
+  postId?: string; // Related post ID for like/comment notifications
 }
 
-export interface NotificationAction {
+export interface Like {
   id: string;
-  title: string;
-  action: string;
-  data?: any;
+  userId: string;
+  postId?: string;
+  commentId?: string;
+  createdAt: Date;
 }
 
-// Enhanced Notification Settings
-export interface EnhancedNotificationSettings {
-  watering: boolean;
-  fertilizing: boolean;
-  disease_alerts: boolean;
-  community_updates: boolean;
-  market_updates: boolean;
-  messages: boolean;
-  promotional: boolean;
-  quiet_hours: {
-    enabled: boolean;
-    start: string; // HH:MM
-    end: string; // HH:MM
-  };
+export interface Follow {
+  id: string;
+  followerId: string;
+  followingId: string;
+  createdAt: Date;
 }
 
 // Chat Attachment for AI
@@ -459,7 +464,9 @@ export interface AIResponse {
 // Chat Message for AI System
 export interface ChatMessage {
   id: string;
+  userId: string;
   content: string;
+  message: string; // Alias for content for backward compatibility
   timestamp: Date;
   isUser: boolean;
   type: 'text' | 'plant_query' | 'care_suggestion' | 'disease_diagnosis';
@@ -513,6 +520,7 @@ export interface Location {
   city: string;
   state: string;
   country: string;
+  zipCode: string;
 }
 
 export interface SecurityAuditLog {

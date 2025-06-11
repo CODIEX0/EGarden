@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ViewStyle, TextInputProps } from 'react-native';
 import { Colors } from '@/constants/Colors';
-import { Video as LucideIcon } from 'lucide-react-native';
+import { LucideIcon } from 'lucide-react-native';
 
 interface InputProps extends TextInputProps {
   label?: string;
   error?: string;
-  icon?: LucideIcon;
+  icon?: typeof LucideIcon;
   style?: ViewStyle;
 }
 
