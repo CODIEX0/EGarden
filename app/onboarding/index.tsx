@@ -4,6 +4,7 @@ import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown, FadeInUp, SlideInRight, SlideOutLeft } from 'react-native-reanimated';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Colors } from '@/constants/Colors';
 import Button from '@/components/Button';
 import { Ionicons } from '@expo/vector-icons';
@@ -276,7 +277,7 @@ export default function OnboardingScreen() {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (currentStep < onboardingSteps.length - 1) {
       setCurrentStep(currentStep + 1);
     } else {
@@ -286,8 +287,17 @@ export default function OnboardingScreen() {
         interests,
         experienceLevel,
         completed: true,
+        completedAt: new Date().toISOString(),
       };
-      // TODO: Store in AsyncStorage or pass to signup
+      
+      try {
+        // Store onboarding data in AsyncStorage for use during signup
+        await AsyncStorage.setItem('onboardingData', JSON.stringify(onboardingData));
+        console.log('Onboarding data saved:', onboardingData);
+      } catch (error) {
+        console.error('Failed to save onboarding data:', error);
+      }
+      
       router.push('/auth/signup');
     }
   };

@@ -44,7 +44,9 @@
     "clean": "npx expo install --fix && npm cache clean --force",
     "prebuild": "expo prebuild --clean",
     "prebuild:android": "expo prebuild --platform android --clean",
-    "prebuild:ios": "expo prebuild --platform ios --clean"
+    "prebuild:ios": "expo prebuild --platform ios --clean",
+    "validate-env": "node scripts/validate-env.js",
+    "setup": "npm run validate-env"
   },
   "dependencies": {
     "@expo-google-fonts/inter": "^0.4.1",

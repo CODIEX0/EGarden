@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ScrollView, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,8 +23,35 @@ export default function SignupScreen() {
     experienceLevel: 'beginner' as 'beginner' | 'intermediate' | 'expert',
   });
   const [loading, setLoading] = useState(false);
+  const [onboardingData, setOnboardingData] = useState<any>(null);
   const { signUp } = useAuth();
   const router = useRouter();
+
+  // Load onboarding data when component mounts
+  useEffect(() => {
+    loadOnboardingData();
+  }, []);
+
+  const loadOnboardingData = async () => {
+    try {
+      const stored = await AsyncStorage.getItem('onboardingData');
+      if (stored) {
+        const data = JSON.parse(stored);
+        setOnboardingData(data);
+        
+        // Pre-populate form with onboarding data
+        setFormData(prev => ({
+          ...prev,
+          userType: data.userType || 'buyer',
+          experienceLevel: data.experienceLevel || 'beginner',
+        }));
+        
+        console.log('Loaded onboarding data:', data);
+      }
+    } catch (error) {
+      console.error('Failed to load onboarding data:', error);
+    }
+  };
 
   const handleSignup = async () => {
     const { name, email, password, confirmPassword, userType, location, experienceLevel } = formData;
@@ -50,8 +78,14 @@ export default function SignupScreen() {
         userType,
         location,
         experienceLevel,
-        interests: [], // Will be collected in onboarding
+        interests: onboardingData?.interests || [], // Use onboarding data if available
+        onboardingCompleted: !!onboardingData,
+        joinDate: new Date(),
       });
+      
+      // Clear stored onboarding data after successful signup
+      await AsyncStorage.removeItem('onboardingData');
+      
       router.replace('/(tabs)');
     } catch (error: any) {
       Alert.alert('Signup Failed', error.message);
